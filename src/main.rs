@@ -1,4 +1,8 @@
 use bevy::{prelude::*, window::PresentMode};
+use plugins::base::BasePlugin;
+
+mod plugins;
+mod entities;
 
 fn main() {
     App::new()
@@ -9,17 +13,6 @@ fn main() {
     
 
     // Plugins
-    .add_plugins(DefaultPlugins.set(WindowPlugin {
-        window: WindowDescriptor {
-            width: 1280.0,
-            height: 720.0,
-            title: "Spider game".to_string(),
-            cursor_visible: true,
-            decorations: true,
-            present_mode: PresentMode::AutoVsync,
-            ..Default::default()
-        },
-        ..Default::default()
-    }))
+    .add_plugin(BasePlugin)
     .run();
 }
