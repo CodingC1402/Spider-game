@@ -18,7 +18,7 @@ strum = { version = "0.24.1", features = ["strum_macros", "derive"] }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies.bevy]
-version = "0.9"
+version = "0.9.1"
 # Disable the default features if there are any that you do not want
 default-features = false
 features = [
