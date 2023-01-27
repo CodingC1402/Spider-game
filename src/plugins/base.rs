@@ -1,6 +1,10 @@
-use bevy::{prelude::{Plugin, PluginGroup}, DefaultPlugins, window::{WindowPlugin, WindowDescriptor}};
-
 use super::display::DisplaySettings;
+use bevy::{
+    prelude::*,
+    window::{PresentMode, WindowDescriptor, WindowPlugin},
+    DefaultPlugins,
+};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub struct BasePlugin;
 
@@ -9,8 +13,8 @@ impl Plugin for BasePlugin {
         let default_settings = DisplaySettings::default();
         let res = default_settings.resolution.to_array();
 
-        app.
-        add_plugins(DefaultPlugins.set(WindowPlugin {
+        app
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
             window: WindowDescriptor {
                 width: res[0],
                 height: res[1],
@@ -22,6 +26,14 @@ impl Plugin for BasePlugin {
                 ..Default::default()
             },
             ..Default::default()
-        }));
+        }))
+        // .add_plugin(WorldInspectorPlugin)
+        .add_startup_system(setup);
     }
+}
+
+fn setup(mut commands: Commands) {
+    commands
+        .spawn(Camera2dBundle::default())
+        .insert(Name::from("Camera"));
 }

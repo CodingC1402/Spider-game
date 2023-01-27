@@ -1,6 +1,6 @@
-pub mod base;
-pub mod physic;
-pub mod tilemap;
 pub mod audio;
+pub mod base;
 pub mod display;
+pub mod physics;
+pub mod tilemap;
 pub mod utils;
