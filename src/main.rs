@@ -1,5 +1,5 @@
-use bevy::{prelude::*, window::PresentMode};
-use plugins::base::BasePlugin;
+use bevy::{prelude::*};
+use plugins::{base::BasePlugin, display::DisplayPlugin};
 
 mod plugins;
 mod entities;
@@ -14,5 +14,6 @@ fn main() {
 
     // Plugins
     .add_plugin(BasePlugin)
+    .add_plugin(DisplayPlugin)
     .run();
 }
