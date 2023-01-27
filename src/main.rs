@@ -1,7 +1,5 @@
-use bevy::{prelude::*, window::PresentMode};
-use plugins::base::BasePlugin;
-use plugins::physics::PhysicsPlugin;
-use plugins::tilemap::TilemapPlugin;
+use bevy::{prelude::*};
+use plugins::{base::BasePlugin, display::DisplayPlugin, tilemap::TilemapPlugin, physics::PhysicsPlugin};
 
 mod entities;
 mod plugins;
@@ -17,11 +15,11 @@ fn main() {
         }))
         
         // Systems
-
         
         // Plugins
         .add_plugin(BasePlugin)
         .add_plugin(TilemapPlugin)
         .add_plugin(PhysicsPlugin)
+        .add_plugin(DisplayPlugin)
         .run();
 }
