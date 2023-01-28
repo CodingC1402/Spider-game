@@ -14,6 +14,7 @@ pub enum PlayerEvent {
     Hurted(Entity),
     Attacks(Entity),
     Moving(Entity),
+    Idle(Entity)
 }
 
 #[derive(Resource, Debug)]
@@ -29,9 +30,9 @@ impl Default for PlayerControl {
     fn default() -> Self {
         Self {
             attack: KeyCode::C,
-            jump: KeyCode::X,
-            left: KeyCode::Left,
-            right: KeyCode::Right,
+            jump: KeyCode::Space,
+            left: KeyCode::A,
+            right: KeyCode::D,
         }
     }
 }

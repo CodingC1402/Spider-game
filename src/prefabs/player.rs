@@ -51,7 +51,9 @@ pub fn spawn_player(
                 ..Default::default()
             },
             jump: PlayerJump {
-                strength: 800.0,
+                strength: 400.0,
+                air_upward_force: 2800.0,
+                duration: 1.2,
                 ..Default::default()
             },
             movement: PlayerMovement {
