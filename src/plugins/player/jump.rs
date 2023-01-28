@@ -121,8 +121,8 @@ pub fn check_if_grounded(
         e_writer.send(
             player_info
                 .is_grounded
-                .then(|| PlayerEvent::Grounded(player))
-                .unwrap_or_else(|| PlayerEvent::Airborne(player)),
+                .then_some(PlayerEvent::Grounded(player))
+                .unwrap_or(PlayerEvent::Airborne(player)),
         )
     });
 }

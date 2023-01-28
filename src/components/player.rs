@@ -13,7 +13,9 @@ pub struct Player;
 
 #[derive(Component, Default, Reflect)]
 pub struct PlayerMovement {
+    pub airborne_acceleration: f32,
     pub acceleration: f32,
+    pub landing_accel: f32,
     /// When reach max velocity, force will stop being applied until velocity is lower than
     /// max again
     pub max_velocity: f32,
