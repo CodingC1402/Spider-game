@@ -12,12 +12,13 @@ use super::{PlayerControl, PlayerEvent};
 
 pub fn handle_jump(
     input: Res<Input<KeyCode>>,
+    time: Res<Time>,
     control: Res<PlayerControl>,
     mut e_writer: EventWriter<PlayerEvent>,
     mut query: Query<
         (
             Entity,
-            &PlayerJump,
+            &mut PlayerJump,
             &PlayerInfo,
             &mut ExternalForce,
             &mut ExternalImpulse,
@@ -28,12 +29,14 @@ pub fn handle_jump(
     input.just_pressed(control.jump).then(|| {
         query
             .iter_mut()
-            .for_each(|(entity, jump_com, info_com, mut force, mut impulse)| {
+            .for_each(|(entity, mut jump_com, info_com, mut force, mut impulse)| {
                 if !info_com.is_grounded {
                     return;
                 }
 
                 impulse.impulse = Vec2::new(0.0, jump_com.strength);
+                jump_com.counter = jump_com.duration;
+
                 e_writer.send(PlayerEvent::Jumped(entity));
             });
     });
