@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 
 pub fn register(app: &mut bevy::prelude::App) {
-    app
-    .register_type::<PlayerMovement>()
-    .register_type::<Player>()
-    .register_type::<PlayerJump>()
-    .register_type::<PlayerInfo>();
+    app.register_type::<PlayerMovement>()
+        .register_type::<Player>()
+        .register_type::<PlayerJump>()
+        .register_type::<PlayerInfo>();
 }
 
 #[derive(Component, Default, Reflect)]
