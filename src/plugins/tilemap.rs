@@ -1,6 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::entities::{Terrain, TerrainBundle, Trap, TrapBundle, WebSticker, WebStickerBundle};
+use crate::bundles::tilemap::{
+    TerrainBundle, TerrainTileBundle, TrapBundle, TrapTileBundle, WebStickerBundle,
+    WebStickerTileBundle,
+};
+use crate::components::tilemap::{TerrainTile, TrapTile, WebStickerTile};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::{prelude::*, GridCoords};
 use bevy_rapier2d::prelude::*;
@@ -24,20 +28,20 @@ impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(LdtkPlugin)
             .insert_resource(LdtkSettings {
-                set_clear_color: SetClearColor::FromLevelBackground,
+                set_clear_color: SetClearColor::No,
                 level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                     load_level_neighbors: true,
                 },
                 ..default()
             })
             .insert_resource(LevelSelection::Index(0))
-            .register_ldtk_int_cell_for_layer::<TerrainBundle>(DARK_CAVE_LAYER, DARK_TERRAIN)
-            .register_ldtk_int_cell_for_layer::<TerrainBundle>(DARK_CAVE_LAYER, PINK_TERRAIN)
-            .register_ldtk_int_cell_for_layer::<WebStickerBundle>(DARK_CAVE_LAYER, METAL)
-            .register_ldtk_int_cell_for_layer::<TrapBundle>(SPIKES_LAYER, SPIKE_UP)
-            .register_ldtk_int_cell_for_layer::<TrapBundle>(SPIKES_LAYER, SPIKE_DOWN)
-            .register_ldtk_int_cell_for_layer::<TrapBundle>(SPIKES_LAYER, SPIKE_LEFT)
-            .register_ldtk_int_cell_for_layer::<TrapBundle>(SPIKES_LAYER, SPIKE_RIGHT)
+            .register_ldtk_int_cell_for_layer::<TerrainTileBundle>(DARK_CAVE_LAYER, DARK_TERRAIN)
+            .register_ldtk_int_cell_for_layer::<TerrainTileBundle>(DARK_CAVE_LAYER, PINK_TERRAIN)
+            .register_ldtk_int_cell_for_layer::<WebStickerTileBundle>(DARK_CAVE_LAYER, METAL)
+            .register_ldtk_int_cell_for_layer::<TrapTileBundle>(SPIKES_LAYER, SPIKE_UP)
+            .register_ldtk_int_cell_for_layer::<TrapTileBundle>(SPIKES_LAYER, SPIKE_DOWN)
+            .register_ldtk_int_cell_for_layer::<TrapTileBundle>(SPIKES_LAYER, SPIKE_LEFT)
+            .register_ldtk_int_cell_for_layer::<TrapTileBundle>(SPIKES_LAYER, SPIKE_RIGHT)
             .add_startup_system(spawn_tilemap)
             .add_system(spawn_tile_colliders)
             .add_system(camera_fit_inside_current_level);
@@ -55,10 +59,17 @@ fn spawn_tilemap(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 pub fn spawn_tile_colliders(
     mut commands: Commands,
-    terrain_query: Query<(&GridCoords, &Parent), Added<Terrain>>,
-    metal_query: Query<(&GridCoords, &Parent), Added<WebSticker>>,
-    trap_query: Query<(&GridCoords, &Parent), Added<Trap>>,
-    parent_query: Query<&Parent, (Without<Terrain>, Without<WebSticker>, Without<Trap>)>,
+    terrain_query: Query<(&GridCoords, &Parent), Added<TerrainTile>>,
+    metal_query: Query<(&GridCoords, &Parent), Added<WebStickerTile>>,
+    trap_query: Query<(&GridCoords, &Parent), Added<TrapTile>>,
+    parent_query: Query<
+        &Parent,
+        (
+            Without<TerrainTile>,
+            Without<WebStickerTile>,
+            Without<TrapTile>,
+        ),
+    >,
     level_query: Query<(Entity, &Handle<LdtkLevel>)>,
     levels: Res<Assets<LdtkLevel>>,
 ) {
@@ -90,19 +101,19 @@ pub fn spawn_tile_colliders(
                 .insert(grid_coords);
         }
     });
-    spawn_connected_colliders(
+    spawn_connected_colliders::<TerrainBundle>(
         &level_to_terrain_tile_coords,
         &level_query,
         &levels,
         &mut commands,
     );
-    spawn_connected_colliders(
+    spawn_connected_colliders::<WebStickerBundle>(
         &level_to_metal_tile_coords,
         &level_query,
         &levels,
         &mut commands,
     );
-    spawn_connected_colliders(
+    spawn_connected_colliders::<TrapBundle>(
         &level_to_trap_tile_coords,
         &level_query,
         &levels,
@@ -110,12 +121,14 @@ pub fn spawn_tile_colliders(
     );
 }
 
-fn spawn_connected_colliders(
+fn spawn_connected_colliders<T>(
     level_to_tile_coords: &HashMap<Entity, HashSet<GridCoords>>,
     level_query: &Query<(Entity, &Handle<LdtkLevel>)>,
     levels: &Assets<LdtkLevel>,
     commands: &mut Commands,
-) {
+) where
+    T: Bundle + Default,
+{
     #[derive(Clone, Eq, PartialEq, Debug, Default, Hash)]
     struct Plate {
         left: i32,
@@ -181,6 +194,7 @@ fn spawn_connected_colliders(
                         }
                     }
                 }
+
                 for plate in &current_row {
                     rect_builder
                         .entry(plate.clone())
@@ -214,7 +228,8 @@ fn spawn_connected_colliders(
                             (tile_rect.bottom + tile_rect.top + 1) as f32 * grid_size as f32 / 2.,
                             0.,
                         ))
-                        .insert(GlobalTransform::default());
+                        .insert(GlobalTransform::default())
+                        .insert(T::default());
                 }
             });
         }

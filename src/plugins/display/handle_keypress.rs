@@ -1,4 +1,4 @@
-use bevy::{prelude::{EventWriter, Input, KeyCode, Res, ResMut}, window::Windows};
+use bevy::prelude::*;
 
 use super::{DisplayMode, DisplaySettingEvent, DisplaySettings, apply_settings::{apply_mode, apply_vsync, apply_resolution}, DisplayResolution, DisplayVsync};
 

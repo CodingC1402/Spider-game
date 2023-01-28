@@ -1,11 +1,9 @@
 use super::display::DisplaySettings;
 use bevy::{
     prelude::*,
-    window::{PresentMode, WindowDescriptor, WindowPlugin},
+    window::{WindowDescriptor, WindowPlugin},
     DefaultPlugins,
 };
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
-
 pub struct BasePlugin;
 
 impl Plugin for BasePlugin {

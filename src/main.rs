@@ -1,8 +1,16 @@
-use bevy::{prelude::*};
-use plugins::{base::BasePlugin, display::DisplayPlugin, tilemap::TilemapPlugin, physics::PhysicsPlugin};
+use bevy::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-mod entities;
+use components::ComponentsPlugin;
+use plugins::{
+    base::BasePlugin, display::DisplayPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
+    tilemap::TilemapPlugin,
+};
+
+mod bundles;
+mod components;
 mod plugins;
+mod prefabs;
 
 fn main() {
     App::new()
@@ -13,13 +21,14 @@ fn main() {
             blue: 0.3,
             alpha: 1.,
         }))
-        
         // Systems
-        
         // Plugins
         .add_plugin(BasePlugin)
         .add_plugin(TilemapPlugin)
         .add_plugin(PhysicsPlugin)
         .add_plugin(DisplayPlugin)
+        .add_plugin(PlayerPlugin)
+        .add_plugin(ComponentsPlugin)
+        .add_plugin(WorldInspectorPlugin)
         .run();
 }
