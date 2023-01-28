@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::{Collider, RigidBody, Velocity, GravityScale, Friction, ColliderMassProperties, LockedAxes, Sleeping, Ccd, ExternalForce, ExternalImpulse};
+use bevy_rapier2d::prelude::{
+    Ccd, Collider, ColliderMassProperties, CollisionGroups, ExternalForce, ExternalImpulse,
+    Friction, GravityScale, LockedAxes, RigidBody, Sleeping, Velocity,
+};
 
 #[derive(Clone, Debug, Default, Bundle)]
 pub struct RigidBodyBundle {
@@ -9,7 +12,6 @@ pub struct RigidBodyBundle {
     pub rotation_constraints: LockedAxes,
     pub force: ExternalForce,
     pub impulse: ExternalImpulse,
-
 }
 
 #[derive(Clone, Debug, Default, Bundle)]
@@ -17,4 +19,5 @@ pub struct ColliderBundle {
     pub collider: Collider,
     pub density: ColliderMassProperties,
     pub friction: Friction,
+    pub collision_groups: CollisionGroups,
 }

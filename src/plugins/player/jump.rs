@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::components::{
-    player::{Player, PlayerFoot, PlayerInfo, PlayerJump, PlayerHead},
+    player::{Player, PlayerFoot, PlayerHead, PlayerInfo, PlayerJump},
     tilemap::Platform,
 };
 
@@ -66,7 +66,7 @@ pub fn check_if_head_bump(
     let (player, mut player_jump, mut force) = q_player.single_mut();
 
     let check_head_then =
-        |child: Entity, func: &dyn Fn() -> bool| q_head.contains(child).then(func).unwrap_or(false);
+        |child: Entity, func: &dyn Fn() -> bool| {q_head.contains(child).then(func).unwrap_or(false)};
 
     let check_not_collide = |child: Entity| {
         !check_head_then(child, &|| {
@@ -79,13 +79,13 @@ pub fn check_if_head_bump(
     };
 
     q_child
-    .iter_descendants(player)
-    .all(check_not_collide)
-    .not()
-    .then(|| {
-        player_jump.counter = 0.0;
-        force.force = Vec2::new(force.force.x, 0.0);
-    });
+        .iter_descendants(player)
+        .all(check_not_collide)
+        .not()
+        .then(|| {
+            player_jump.counter = 0.0;
+            force.force = Vec2::new(force.force.x, 0.0);
+        });
 }
 
 pub fn check_if_grounded(
@@ -99,7 +99,7 @@ pub fn check_if_grounded(
     let (player, mut player_info) = q_player.single_mut();
 
     let check_foot_then =
-        |child: Entity, func: &dyn Fn() -> bool| q_foot.contains(child).then(func).unwrap_or(false);
+        |child: Entity, func: &dyn Fn() -> bool| {q_foot.contains(child).then(func).unwrap_or(false)};
 
     let check_not_collide = |child: Entity| {
         !check_foot_then(child, &|| {

@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::{WorldInspectorPlugin, ResourceInspectorPlugin};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use bevy_rapier2d::prelude::{RapierContext, KinematicCharacterController};
 use components::ComponentsPlugin;
 use plugins::{
     base::BasePlugin, display::DisplayPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
@@ -10,7 +9,6 @@ use plugins::{
 
 mod bundles;
 mod components;
-mod entities;
 mod plugins;
 mod prefabs;
 
