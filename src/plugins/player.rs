@@ -5,16 +5,17 @@ use bevy::prelude::*;
 
 use crate::prefabs::player::spawn_player;
 
-use self::{jump::{handle_jump, check_if_grounded}, movement::handle_movement};
+use self::{jump::{handle_jump, check_if_grounded, check_if_head_bump}, movement::{handle_movement, apply_accel_when_land}};
 
 pub enum PlayerEvent {
-    Airborn(Entity),
+    Airborne(Entity),
     Jumped(Entity),
     Grounded(Entity),
     Hurted(Entity),
     Attacks(Entity),
     Moving(Entity),
-    Idle(Entity)
+    Idle(Entity),
+    ChangeDirection(Entity)
 }
 
 #[derive(Resource, Debug)]
@@ -45,7 +46,9 @@ impl Plugin for PlayerPlugin {
             .add_startup_system(spawn_player_at_start)
             .add_system(handle_jump)
             .add_system(check_if_grounded)
-            .add_system(handle_movement);
+            .add_system(handle_movement)
+            .add_system(check_if_head_bump)
+            .add_system(apply_accel_when_land);
 
     }
 }
