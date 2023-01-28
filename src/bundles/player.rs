@@ -44,3 +44,12 @@ impl Default for PlayerFootBundle {
         }
     }
 }
+
+#[derive(Bundle, Default)]
+pub struct PlayerHeadBundle {
+    pub transform: TransformBundle,
+    pub collider: Collider,
+    pub sensor: Sensor,
+    pub head_comp: PlayerHead,
+    pub name: Name
+}

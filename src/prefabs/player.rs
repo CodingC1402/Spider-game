@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, GravityScale, LockedAxes, RigidBody, Sensor,
+    Ccd, CoefficientCombineRule, Collider, CollisionGroups, Friction, GravityScale, LockedAxes,
+    RigidBody, Sensor,
 };
 
 use crate::{
     bundles::{
         physics::{ColliderBundle, RigidBodyBundle},
-        player::{PlayerBundle, PlayerFootBundle},
+        player::{PlayerBundle, PlayerFootBundle, PlayerHeadBundle},
     },
     components::{
         physics::{CollisionGroupsFilter, GameCollisionGroups},
@@ -52,25 +53,36 @@ pub fn spawn_player(
             },
             physics: RigidBodyBundle {
                 rotation_constraints: LockedAxes::ROTATION_LOCKED_Z,
-                gravity_scale: GravityScale(3.0),
+                gravity_scale: GravityScale(2.5),
                 ..Default::default()
             },
             jump: PlayerJump {
-                strength: 800.0,
+                strength: 250.0,
+                air_upward_force: 1800.0,
+                duration: 0.60,
                 ..Default::default()
             },
             movement: PlayerMovement {
+                acceleration: 1500.0,
+                landing_accel: 60.0,
+                airborne_acceleration: 600.0,
+                max_velocity: 60.0,
                 ..Default::default()
             },
             info: PlayerInfo { is_grounded: true },
             name: Name::from(PLAYER_NAME),
             ..Default::default()
         })
+        .insert(Ccd::enabled())
         .with_children(|builder| {
             builder
                 .spawn(TransformBundle::default())
                 .insert(ColliderBundle {
-                    collider: Collider::cuboid(8.0, 5.0),
+                    collider: Collider::capsule_x(3.0, 3.5),
+                    friction: Friction {
+                        coefficient: 0.4,
+                        combine_rule: CoefficientCombineRule::Min,
+                    },
                     collision_groups: CollisionGroups {
                         memberships: GameCollisionGroups::PLAYER,
                         filters: GameCollisionGroups::PLAYER.filter_group(),
@@ -79,13 +91,13 @@ pub fn spawn_player(
                 })
                 .insert(Name::from("Body"));
 
-            builder.spawn(PlayerFootBundle {
+            builder.spawn(PlayerHeadBundle {
                 transform: TransformBundle {
-                    local: Transform::from_xyz(0.0, -4.0, 0.0),
+                    local: Transform::from_xyz(0.0, 4.0, 0.0),
                     ..Default::default()
                 },
-                collider: Collider::cuboid(2.0, 5.0),
-                name: Name::from("Foot long"),
+                collider: Collider::cuboid(3.0, 2.0),
+                name: Name::from("Head"),
                 ..Default::default()
             });
 
@@ -94,7 +106,17 @@ pub fn spawn_player(
                     local: Transform::from_xyz(0.0, -5.0, 0.0),
                     ..Default::default()
                 },
-                collider: Collider::cuboid(7.0, 2.0),
+                collider: Collider::cuboid(2.0, 4.0),
+                name: Name::from("Foot long"),
+                ..Default::default()
+            });
+
+            builder.spawn(PlayerFootBundle {
+                transform: TransformBundle {
+                    local: Transform::from_xyz(0.0, -4.0, 0.0),
+                    ..Default::default()
+                },
+                collider: Collider::cuboid(6.0, 1.0),
                 name: Name::from("Foot wide"),
                 ..Default::default()
             });
