@@ -13,8 +13,15 @@ pub struct Player;
 
 #[derive(Component, Default, Reflect)]
 pub struct PlayerMovement {
-    pub speed: f32,
-    pub damping: f32,
+    pub acceleration: f32,
+    /// When reach max velocity, force will stop being applied until velocity is lower than
+    /// max again
+    pub max_velocity: f32,
+    /// Velocity when changing direction or stop moving to create a sense of slowing down then switch
+    /// direction
+    pub decelerate_velocity: f32,
+    pub stop_velocity: f32,
+    pub axis: f32,
 }
 
 #[derive(Component, Default, Reflect)]
@@ -34,3 +41,7 @@ pub struct PlayerInfo {
 
 #[derive(Component, Default, Reflect)]
 pub struct PlayerFoot;
+
+
+#[derive(Component, Default, Reflect)]
+pub struct PlayerHead;

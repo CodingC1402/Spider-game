@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::components::{
-    player::{Player, PlayerFoot, PlayerInfo, PlayerJump},
+    player::{Player, PlayerFoot, PlayerInfo, PlayerJump, PlayerHead},
     tilemap::Platform,
 };
 
@@ -33,7 +33,7 @@ pub fn handle_jump(
         .iter_mut()
         .for_each(|(entity, mut jump_com, info_com, mut force, mut impulse)| {
             (just_pressed && info_com.is_grounded).then(|| {
-                impulse.impulse = Vec2::new(0.0, jump_com.strength);
+                impulse.impulse = Vec2::new(impulse.impulse.x, jump_com.strength);
                 jump_com.counter = jump_com.duration;
 
                 e_writer.send(PlayerEvent::Jumped(entity));
@@ -43,17 +43,49 @@ pub fn handle_jump(
                 pressing
                     .then(|| {
                         force.force = Vec2::new(
-                            0.0,
+                            force.force.x,
                             jump_com.air_upward_force * (jump_com.counter / jump_com.duration),
                         );
                         jump_com.counter -= time.delta_seconds();
                     })
                     .unwrap_or_else(|| {
-                        force.force = Vec2::new(0.0, 0.0);
+                        force.force = Vec2::new(force.force.x, 0.0);
                         jump_com.counter = 0.0;
                     });
             });
         });
+}
+
+pub fn check_if_head_bump(
+    q_child: Query<&Children>,
+    q_head: Query<Entity, (With<PlayerHead>, With<Sensor>)>,
+    q_platform: Query<&Collider, With<Platform>>,
+    mut q_player: Query<(Entity, &mut PlayerJump, &mut ExternalForce), With<Player>>,
+    rapier_context: Res<RapierContext>,
+) {
+    let (player, mut player_jump, mut force) = q_player.single_mut();
+
+    let check_head_then =
+        |child: Entity, func: &dyn Fn() -> bool| q_head.contains(child).then(func).unwrap_or(false);
+
+    let check_not_collide = |child: Entity| {
+        !check_head_then(child, &|| {
+            rapier_context
+                .intersections_with(child)
+                .any(|(entity1, entity2, _)| {
+                    q_platform.contains(entity1) || q_platform.contains(entity2)
+                })
+        })
+    };
+
+    q_child
+    .iter_descendants(player)
+    .all(check_not_collide)
+    .not()
+    .then(|| {
+        player_jump.counter = 0.0;
+        force.force = Vec2::new(force.force.x, 0.0);
+    });
 }
 
 pub fn check_if_grounded(
@@ -90,7 +122,7 @@ pub fn check_if_grounded(
             player_info
                 .is_grounded
                 .then(|| PlayerEvent::Grounded(player))
-                .unwrap_or_else(|| PlayerEvent::Airborn(player)),
+                .unwrap_or_else(|| PlayerEvent::Airborne(player)),
         )
     });
 }

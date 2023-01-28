@@ -4,7 +4,7 @@ use bevy_rapier2d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Sens
 use crate::{
     bundles::{
         physics::{ColliderBundle, RigidBodyBundle},
-        player::{PlayerBundle, PlayerFootBundle},
+        player::{PlayerBundle, PlayerFootBundle, PlayerHeadBundle},
     },
     components::player::{PlayerInfo, PlayerJump, PlayerMovement},
 };
@@ -51,9 +51,9 @@ pub fn spawn_player(
                 ..Default::default()
             },
             jump: PlayerJump {
-                strength: 400.0,
-                air_upward_force: 2800.0,
-                duration: 1.2,
+                strength: 250.0,
+                air_upward_force: 4000.0,
+                duration: 0.75,
                 ..Default::default()
             },
             movement: PlayerMovement {
@@ -67,18 +67,29 @@ pub fn spawn_player(
             builder
                 .spawn(TransformBundle::default())
                 .insert(ColliderBundle {
-                    collider: Collider::cuboid(8.0, 5.0),
+                    collider: Collider::capsule_y(1.0, 3.5),
                     ..Default::default()
                 })
                 .insert(Name::from("Body"));
 
             builder
-                .spawn(PlayerFootBundle {
+                .spawn(PlayerHeadBundle {
                     transform: TransformBundle {
-                        local: Transform::from_xyz(0.0, -4.0, 0.0),
+                        local: Transform::from_xyz(0.0, 4.0, 0.0),
                         ..Default::default()
                     },
-                    collider: Collider::cuboid(2.0, 5.0),
+                    collider: Collider::cuboid(3.0, 2.0),
+                    name: Name::from("Head"),
+                    ..Default::default()
+                });
+
+            builder
+                .spawn(PlayerFootBundle {
+                    transform: TransformBundle {
+                        local: Transform::from_xyz(0.0, -5.0, 0.0),
+                        ..Default::default()
+                    },
+                    collider: Collider::cuboid(2.0, 4.0),
                     name: Name::from("Foot long"),
                     ..Default::default()
                 });
@@ -89,7 +100,7 @@ pub fn spawn_player(
                         local: Transform::from_xyz(0.0, -5.0, 0.0),
                         ..Default::default()
                     },
-                    collider: Collider::cuboid(7.0, 2.0),
+                    collider: Collider::cuboid(5.0, 2.0),
                     name: Name::from("Foot wide"),
                     ..Default::default()
                 });
