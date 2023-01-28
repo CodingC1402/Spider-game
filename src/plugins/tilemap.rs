@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::entities::{Terrain, TerrainBundle, Trap, TrapBundle, WebSticker, WebStickerBundle};
+use crate::{entities::{TerrainBundle, TrapBundle, WebStickerBundle, Terrain, WebSticker, Trap}, components::tilemap::Platform};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::{prelude::*, GridCoords};
 use bevy_rapier2d::prelude::*;
@@ -24,7 +24,7 @@ impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(LdtkPlugin)
             .insert_resource(LdtkSettings {
-                set_clear_color: SetClearColor::FromLevelBackground,
+                set_clear_color: SetClearColor::No,
                 level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                     load_level_neighbors: true,
                 },
@@ -40,7 +40,8 @@ impl Plugin for TilemapPlugin {
             .register_ldtk_int_cell_for_layer::<TrapBundle>(SPIKES_LAYER, SPIKE_RIGHT)
             .add_startup_system(spawn_tilemap)
             .add_system(spawn_tile_colliders)
-            .add_system(camera_fit_inside_current_level);
+            //.add_system(camera_fit_inside_current_level)
+            ;
     }
 }
 
@@ -181,6 +182,7 @@ fn spawn_connected_colliders(
                         }
                     }
                 }
+                
                 for plate in &current_row {
                     rect_builder
                         .entry(plate.clone())
@@ -207,6 +209,7 @@ fn spawn_connected_colliders(
                                 * grid_size as f32
                                 / 2.,
                         ))
+                        .insert(Platform)
                         .insert(RigidBody::Fixed)
                         .insert(Friction::new(1.0))
                         .insert(Transform::from_xyz(
