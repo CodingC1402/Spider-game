@@ -1,8 +1,7 @@
 use bevy::prelude::Plugin;
 
-use self::player::*;
-
 pub mod player;
+pub mod tilemap;
 
 pub struct ComponentsPlugin;
 impl Plugin for ComponentsPlugin {

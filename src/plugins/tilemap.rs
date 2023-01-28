@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::entities::{Tile, TileBundle};
+use crate::{entities::{Tile, TileBundle}, components::tilemap::Platform};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::{prelude::*, GridCoords};
 use bevy_rapier2d::prelude::*;
@@ -155,6 +155,7 @@ pub fn spawn_tile_colliders(
                                     * grid_size as f32
                                     / 2.,
                             ))
+                            .insert(Platform)
                             .insert(RigidBody::Fixed)
                             .insert(Friction::new(1.0))
                             .insert(Transform::from_xyz(

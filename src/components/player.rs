@@ -28,3 +28,6 @@ pub struct PlayerJump {
 pub struct PlayerInfo {
     pub is_grounded: bool,
 }
+
+#[derive(Component, Default, Reflect)]
+pub struct PlayerFoot;

@@ -1,7 +1,13 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, GravityScale};
+use bevy_rapier2d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Sensor};
 
-use crate::{bundles::{physics::{ColliderBundle, RigidBodyBundle}, player::PlayerBundle}, components::player::{PlayerJump, PlayerMovement, PlayerInfo}};
+use crate::{
+    bundles::{
+        physics::{ColliderBundle, RigidBodyBundle},
+        player::{PlayerBundle, PlayerFootBundle},
+    },
+    components::player::{PlayerInfo, PlayerJump, PlayerMovement},
+};
 
 const PLAYER_NAME: &str = "Player";
 const PLAYER_SIZE: Vec2 = Vec2::splat(32.0);
@@ -51,9 +57,7 @@ pub fn spawn_player(
             movement: PlayerMovement {
                 ..Default::default()
             },
-            info: PlayerInfo {
-                is_grounded: true
-            },
+            info: PlayerInfo { is_grounded: true },
             name: Name::from(PLAYER_NAME),
             ..Default::default()
         })
@@ -62,6 +66,29 @@ pub fn spawn_player(
                 .spawn(TransformBundle::default())
                 .insert(ColliderBundle {
                     collider: Collider::cuboid(16.0, 10.0),
+                    ..Default::default()
+                })
+                .insert(Name::from("Body"));
+
+            builder
+                .spawn(PlayerFootBundle {
+                    transform: TransformBundle {
+                        local: Transform::from_xyz(0.0, -8.0, 0.0),
+                        ..Default::default()
+                    },
+                    collider: Collider::cuboid(4.0, 10.0),
+                    name: Name::from("Foot long"),
+                    ..Default::default()
+                });
+
+            builder
+                .spawn(PlayerFootBundle {
+                    transform: TransformBundle {
+                        local: Transform::from_xyz(0.0, -10.0, 0.0),
+                        ..Default::default()
+                    },
+                    collider: Collider::cuboid(14.0, 2.0),
+                    name: Name::from("Foot wide"),
                     ..Default::default()
                 });
         })

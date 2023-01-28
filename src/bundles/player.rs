@@ -1,6 +1,7 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::{Sensor, Collider};
 
-use crate::components::player::{Player, PlayerMovement, PlayerJump, PlayerInfo};
+use crate::components::player::{Player, PlayerMovement, PlayerJump, PlayerInfo, PlayerFoot};
 
 use super::physics::RigidBodyBundle;
 
@@ -13,4 +14,13 @@ pub struct PlayerBundle {
     pub info: PlayerInfo,
     pub movement: PlayerMovement,
     pub name: Name,
+}
+
+#[derive(Bundle, Default)]
+pub struct PlayerFootBundle {
+    pub transform: TransformBundle,
+    pub collider: Collider,
+    pub sensor: Sensor,
+    pub foot_comp: PlayerFoot,
+    pub name: Name
 }

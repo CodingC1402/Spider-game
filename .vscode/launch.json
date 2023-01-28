@@ -5,14 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
             "type": "lldb",
-            "program": "${workspaceFolder}/target/debug/spider-escape",
             "request": "launch",
-            "env": {
-                "PATH": "home/cornpc/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin;${workspaceFolder}/target/debug/deps;${env:PATH}",
-            }
-        },
+            "name": "Cargo launch",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=spider-escape"
+                ]
+            },
+            "program": "${cargo:program}",
+            "args": []
+        }
+
+
 
     ]
 }
