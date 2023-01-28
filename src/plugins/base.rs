@@ -1,11 +1,11 @@
+use crate::bundles::player::PlayerBundle;
+
 use super::display::DisplaySettings;
 use bevy::{
     prelude::*,
-    window::{PresentMode, WindowDescriptor, WindowPlugin},
-    DefaultPlugins,
+    window::{WindowDescriptor, WindowPlugin},
+    DefaultPlugins, render::camera::ScalingMode,
 };
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
-
 pub struct BasePlugin;
 
 impl Plugin for BasePlugin {
@@ -26,14 +26,22 @@ impl Plugin for BasePlugin {
                 ..Default::default()
             },
             ..Default::default()
-        }))
+        }).set(ImagePlugin::default_nearest()))
         // .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup);
     }
 }
 
 fn setup(mut commands: Commands) {
+    let camera = Camera2dBundle {
+        projection: OrthographicProjection {
+            // scale: 0.3,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    
     commands
-        .spawn(Camera2dBundle::default())
+        .spawn(camera)
         .insert(Name::from("Camera"));
 }

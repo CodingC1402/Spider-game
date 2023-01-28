@@ -20,7 +20,7 @@ impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(LdtkPlugin)
             .insert_resource(LdtkSettings {
-                set_clear_color: SetClearColor::FromLevelBackground,
+                set_clear_color: SetClearColor::No,
                 level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                     load_level_neighbors: true,
                 },
@@ -30,7 +30,8 @@ impl Plugin for TilemapPlugin {
             .register_ldtk_int_cell::<TileBundle>(GROUND)
             .add_startup_system(spawn_tilemap)
             .add_system(spawn_tile_colliders)
-            .add_system(camera_fit_inside_current_level);
+            //.add_system(camera_fit_inside_current_level)
+            ;
     }
 }
 
