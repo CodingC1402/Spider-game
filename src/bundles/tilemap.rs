@@ -21,15 +21,17 @@ pub struct TrapTileBundle {
 pub struct TerrainBundle {
     tile: Terrain,
     platform: Platform,
+    non_stick: NonStickable,
 }
 
 #[derive(Bundle, Default, LdtkIntCell)]
 pub struct WebStickerBundle {
-    web_sticker: WebSticker,
+    web_sticker: WebStickable,
     platform: Platform,
 }
 
 #[derive(Bundle, Default, LdtkIntCell)]
 pub struct TrapBundle {
     trap: Trap,
+    non_stick: NonStickable,
 }

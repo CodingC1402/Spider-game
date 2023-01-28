@@ -20,7 +20,10 @@ pub struct TrapTile;
 pub struct Terrain;
 
 #[derive(Component, Default)]
-pub struct WebSticker;
+pub struct Trap;
 
 #[derive(Component, Default)]
-pub struct Trap;
+pub struct WebStickable;
+
+#[derive(Component, Default)]
+pub struct NonStickable;

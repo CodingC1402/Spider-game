@@ -4,6 +4,7 @@ use crate::bundles::tilemap::{
     TerrainBundle, TerrainTileBundle, TrapBundle, TrapTileBundle, WebStickerBundle,
     WebStickerTileBundle,
 };
+use crate::components::physics::{CollisionGroupsFilter, GameCollisionGroups};
 use crate::components::tilemap::{TerrainTile, TrapTile, WebStickerTile};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::{prelude::*, GridCoords};
@@ -105,18 +106,21 @@ pub fn spawn_tile_colliders(
         &level_to_terrain_tile_coords,
         &level_query,
         &levels,
+        GameCollisionGroups::NON_STICK_TERRAIN,
         &mut commands,
     );
     spawn_connected_colliders::<WebStickerBundle>(
         &level_to_metal_tile_coords,
         &level_query,
         &levels,
+        GameCollisionGroups::WEB_STICKABLE_TERRAIN,
         &mut commands,
     );
     spawn_connected_colliders::<TrapBundle>(
         &level_to_trap_tile_coords,
         &level_query,
         &levels,
+        GameCollisionGroups::TRAP,
         &mut commands,
     );
 }
@@ -125,6 +129,7 @@ fn spawn_connected_colliders<T>(
     level_to_tile_coords: &HashMap<Entity, HashSet<GridCoords>>,
     level_query: &Query<(Entity, &Handle<LdtkLevel>)>,
     levels: &Assets<LdtkLevel>,
+    tile_collision_groups: Group,
     commands: &mut Commands,
 ) where
     T: Bundle + Default,
@@ -221,6 +226,10 @@ fn spawn_connected_colliders<T>(
                                 * grid_size as f32
                                 / 2.,
                         ))
+                        .insert(CollisionGroups {
+                            memberships: tile_collision_groups,
+                            filters: tile_collision_groups.filter_group(),
+                        })
                         .insert(RigidBody::Fixed)
                         .insert(Friction::new(1.0))
                         .insert(Transform::from_xyz(
