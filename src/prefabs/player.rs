@@ -10,7 +10,7 @@ use crate::{
 };
 
 const PLAYER_NAME: &str = "Player";
-const PLAYER_SIZE: Vec2 = Vec2::splat(32.0);
+const PLAYER_SIZE: Vec2 = Vec2::splat(16.0);
 const PLAYER_SPRITE_SIZE: Vec2 = Vec2::splat(512.0);
 const PLAYER_SPRITE_PATH: &str = "spider.png";
 const PLAYER_SPRITE_ROW_COL: [usize; 2] = [1, 1];
@@ -47,7 +47,7 @@ pub fn spawn_player(
             },
             physic: RigidBodyBundle {
                 rotation_constraints: LockedAxes::ROTATION_LOCKED_Z,
-                gravity_scale: GravityScale(4.0),
+                gravity_scale: GravityScale(3.0),
                 ..Default::default()
             },
             jump: PlayerJump {
@@ -65,7 +65,7 @@ pub fn spawn_player(
             builder
                 .spawn(TransformBundle::default())
                 .insert(ColliderBundle {
-                    collider: Collider::cuboid(16.0, 10.0),
+                    collider: Collider::cuboid(8.0, 5.0),
                     ..Default::default()
                 })
                 .insert(Name::from("Body"));
@@ -73,10 +73,10 @@ pub fn spawn_player(
             builder
                 .spawn(PlayerFootBundle {
                     transform: TransformBundle {
-                        local: Transform::from_xyz(0.0, -8.0, 0.0),
+                        local: Transform::from_xyz(0.0, -4.0, 0.0),
                         ..Default::default()
                     },
-                    collider: Collider::cuboid(4.0, 10.0),
+                    collider: Collider::cuboid(2.0, 5.0),
                     name: Name::from("Foot long"),
                     ..Default::default()
                 });
@@ -84,10 +84,10 @@ pub fn spawn_player(
             builder
                 .spawn(PlayerFootBundle {
                     transform: TransformBundle {
-                        local: Transform::from_xyz(0.0, -10.0, 0.0),
+                        local: Transform::from_xyz(0.0, -5.0, 0.0),
                         ..Default::default()
                     },
-                    collider: Collider::cuboid(14.0, 2.0),
+                    collider: Collider::cuboid(7.0, 2.0),
                     name: Name::from("Foot wide"),
                     ..Default::default()
                 });

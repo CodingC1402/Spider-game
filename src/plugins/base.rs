@@ -34,9 +34,9 @@ impl Plugin for BasePlugin {
 
 fn setup(mut commands: Commands) {
     let camera = Camera2dBundle {
-        transform: Transform::from_xyz(128.0, 128.0, 1000.0),
+        transform: Transform::from_xyz(64.0, 64.0, 1000.0),
         projection: OrthographicProjection {
-            scale: 0.3,
+            scale: 0.25,
             ..Default::default()
         },
         ..Default::default()

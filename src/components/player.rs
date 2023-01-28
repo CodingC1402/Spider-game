@@ -20,8 +20,11 @@ pub struct PlayerMovement {
 #[derive(Component, Default, Reflect)]
 pub struct PlayerJump {
     pub strength: f32,
+    pub air_upward_force: f32,
+
+    // After this duration system will stop refresh vec2
     pub duration: f32,
-    pub damping: f32,
+    pub counter: f32,
 }
 
 #[derive(Component, Default, Reflect)]
