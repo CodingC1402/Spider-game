@@ -1,4 +1,4 @@
-use bevy::{prelude::{Plugin, Resource}, window::{WindowMode, PresentMode}};
+use bevy::{prelude::*, window::PresentMode};
 
 use self::handle_keypress::handle_keypress;
 
