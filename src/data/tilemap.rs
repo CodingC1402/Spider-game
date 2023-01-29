@@ -1,6 +1,34 @@
-use crate::components::tilemap::*;
 use bevy::prelude::*;
-use bevy_ecs_ldtk::prelude::*;
+use bevy_ecs_ldtk::LdtkIntCell;
+
+#[derive(Debug, Default, Reflect, Component)]
+pub struct Platform;
+
+// Add ground, walls, etc component later;
+
+
+#[derive(Component, Default)]
+pub struct TerrainTile;
+
+#[derive(Component, Default)]
+pub struct WebStickerTile;
+
+#[derive(Component, Default)]
+pub struct TrapTile;
+
+// Components attached to connected colliders
+
+#[derive(Component, Default)]
+pub struct Terrain;
+
+#[derive(Component, Default)]
+pub struct Trap;
+
+#[derive(Component, Default)]
+pub struct WebStickable;
+
+#[derive(Component, Default)]
+pub struct NonStickable;
 
 #[derive(Bundle, Default, LdtkIntCell)]
 pub struct TerrainTileBundle {

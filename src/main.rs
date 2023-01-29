@@ -1,16 +1,13 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use components::ComponentsPlugin;
 use plugins::{
     base::BasePlugin, display::DisplayPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
     tilemap::TilemapPlugin,
 };
 
-mod bundles;
-mod components;
+mod data;
 mod plugins;
-mod prefabs;
 
 fn main() {
     App::new()
@@ -28,7 +25,6 @@ fn main() {
         .add_plugin(PhysicsPlugin)
         .add_plugin(DisplayPlugin)
         .add_plugin(PlayerPlugin)
-        .add_plugin(ComponentsPlugin)
         .add_plugin(WorldInspectorPlugin)
         .run();
 }

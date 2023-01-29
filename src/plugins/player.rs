@@ -1,10 +1,9 @@
 mod jump;
 mod movement;
 mod shoot_web;
+pub mod spawn;
 
 use bevy::prelude::*;
-
-use crate::prefabs::player::spawn_player;
 
 use self::{
     jump::{check_if_grounded, check_if_head_bump, handle_jump},
@@ -13,7 +12,7 @@ use self::{
         despawn_overstretched_web, handle_shoot_web_input, handle_web_head_collision,
         setup_web_texture, shoot_web, update_web_string_transform, WebOverstretchedEvent,
         WebTexture,
-    },
+    }, spawn::spawn_player,
 };
 
 pub enum PlayerEvent {

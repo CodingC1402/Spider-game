@@ -1,8 +1,8 @@
 use bevy::prelude::Plugin;
 
-pub mod physics;
 pub mod player;
 pub mod tilemap;
+pub mod physics;
 pub mod web;
 
 pub struct ComponentsPlugin;

@@ -1,6 +1,6 @@
-use crate::bundles::web::*;
-use crate::components::tilemap::{NonStickable, WebStickable};
-use crate::components::{
+use crate::data::web::*;
+use crate::data::tilemap::{NonStickable, WebStickable};
+use crate::data::{
     physics::{CollisionGroupsFilter, GameCollisionGroups},
     player::Player,
     web::{Web, WebHead, WebString},

@@ -1,11 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::bundles::tilemap::{
-    TerrainBundle, TerrainTileBundle, TrapBundle, TrapTileBundle, WebStickerBundle,
-    WebStickerTileBundle,
-};
-use crate::components::physics::{CollisionGroupsFilter, GameCollisionGroups};
-use crate::components::tilemap::{TerrainTile, TrapTile, WebStickerTile};
+use crate::data::tilemap::*;
+use crate::data::physics::{CollisionGroupsFilter, GameCollisionGroups};
+use crate::data::tilemap::{TerrainTile, TrapTile, WebStickerTile};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::{prelude::*, GridCoords};
 use bevy_rapier2d::prelude::*;

@@ -1,8 +1,17 @@
-use crate::components::web::*;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
-use bevy_rapier2d::prelude::{
-    ActiveEvents, Collider, CollisionGroups, GravityScale, RigidBody, Sensor, Velocity,
-};
+use bevy_rapier2d::prelude::*;
+
+#[derive(Component, Default, Reflect)]
+pub struct WebString;
+
+#[derive(Component, Default, Reflect)]
+pub struct WebHead {
+    pub stuck_on_wall: bool,
+}
+
+#[derive(Component, Default, Reflect)]
+pub struct Web;
+
 
 #[derive(Bundle, Default)]
 pub struct WebStringBundle {

@@ -1,19 +1,9 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::{
-    Ccd, CoefficientCombineRule, Collider, CollisionGroups, Friction, GravityScale, LockedAxes,
-    RigidBody, Sensor,
+    Ccd, CoefficientCombineRule, Collider, Friction, GravityScale, LockedAxes, CollisionGroups,
 };
 
-use crate::{
-    bundles::{
-        physics::{ColliderBundle, RigidBodyBundle},
-        player::{PlayerBundle, PlayerFootBundle, PlayerHeadBundle},
-    },
-    components::{
-        physics::{CollisionGroupsFilter, GameCollisionGroups},
-        player::{PlayerInfo, PlayerJump, PlayerMovement},
-    },
-};
+use crate::data::{physics::*, player::*};
 
 const PLAYER_NAME: &str = "Player";
 const PLAYER_SIZE: Vec2 = Vec2::splat(16.0);
@@ -59,12 +49,12 @@ pub fn spawn_player(
             jump: PlayerJump {
                 strength: 250.0,
                 air_upward_force: 1800.0,
-                duration: 0.60,
+                duration: 0.5,
                 ..Default::default()
             },
             movement: PlayerMovement {
                 acceleration: 1500.0,
-                landing_accel: 60.0,
+                landing_accel: 100.0,
                 airborne_acceleration: 600.0,
                 max_velocity: 60.0,
                 ..Default::default()
@@ -78,7 +68,7 @@ pub fn spawn_player(
             builder
                 .spawn(TransformBundle::default())
                 .insert(ColliderBundle {
-                    collider: Collider::capsule_x(3.0, 3.5),
+                    collider: Collider::capsule_x(2.0, 3.5),
                     friction: Friction {
                         coefficient: 0.4,
                         combine_rule: CoefficientCombineRule::Min,

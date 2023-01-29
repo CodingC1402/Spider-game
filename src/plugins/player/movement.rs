@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::{ExternalForce, ExternalImpulse, Velocity};
 
-use crate::components::player::{Player, PlayerInfo, PlayerJump, PlayerMovement};
+use crate::data::player::{Player, PlayerInfo, PlayerJump, PlayerMovement};
 
 use super::{PlayerControl, PlayerEvent};
 

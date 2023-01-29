@@ -17,8 +17,5 @@
             "program": "${cargo:program}",
             "args": []
         }
-
-
-
     ]
 }
