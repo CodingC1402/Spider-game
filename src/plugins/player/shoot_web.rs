@@ -1,5 +1,5 @@
-use crate::data::web::*;
 use crate::data::tilemap::{NonStickable, WebStickable};
+use crate::data::web::*;
 use crate::data::{
     physics::{CollisionGroupsFilter, GameCollisionGroups},
     player::Player,
@@ -32,14 +32,15 @@ pub fn handle_shoot_web_input(
 ) {
     if input.just_pressed(MouseButton::Left) {
         ev_writer.send(PlayerEvent::ShotWeb);
-        debug!("shot web");
+        debug!("!shot web");
+    } else if input.just_pressed(MouseButton::Right) {
+        ev_writer.send(PlayerEvent::ReleasedWeb);
+        debug!("!released web");
     }
 }
 
 /// Shoot the web-head out with a certain velocity, the "string" of the web starts out with 0 length, which will
 /// later be adjusted by [`update_web_string_transform`].
-///
-/// Also responsible for despawning the last web shot, if any.
 pub fn shoot_web(
     q_web_string: Query<&Handle<ColorMaterial>, With<WebString>>,
     q_web: Query<Entity, With<Web>>,
@@ -52,71 +53,71 @@ pub fn shoot_web(
     mut ev_reader: EventReader<PlayerEvent>,
     mut commands: Commands,
 ) {
-    if ev_reader
+    ev_reader
         .iter()
-        .filter(|ev| match ev {
+        .any(|ev| match ev {
             PlayerEvent::ShotWeb => true,
             _ => false,
         })
-        .count()
-        > 0
-    {
-        let (camera, camera_transform) = q_camera.single();
-        if let Some(cursor_translation) =
-            utils::cursor_screen_to_world(&windows, &camera, &camera_transform)
-        {
-            q_web.for_each(|entity| {
-                commands.entity(entity).despawn_recursive();
-            });
+        .then(|| {
+            let (camera, camera_transform) = q_camera.single();
+            if let Some(cursor_translation) =
+                utils::cursor_screen_to_world(&windows, &camera, &camera_transform)
+            {
+                q_web.for_each(|entity| {
+                    commands.entity(entity).despawn_recursive();
+                });
 
-            let player_translation = q_player.single().translation().truncate();
-            let shoot_direction = (cursor_translation - player_translation).normalize();
-            let shoot_translation = player_translation + 4.0 * shoot_direction;
-            let (midpoint, angle) = midpoint_and_angle_to_x(player_translation, shoot_translation);
+                let player_translation = q_player.single().translation().truncate();
+                let shoot_direction = (cursor_translation - player_translation).normalize();
+                let shoot_translation = player_translation + 4.0 * shoot_direction;
+                let (midpoint, angle) =
+                    midpoint_and_angle_to_x(player_translation, shoot_translation);
 
-            let mat_handle = if q_web_string.is_empty() {
-                materials.add(ColorMaterial::from(Color::WHITE)).clone()
-            } else {
-                q_web_string.single().clone()
-            };
-            let mesh_handle = meshes.add(shape::Box::new(1.0, 1.0, 1.0).into());
+                let mat_handle = q_web_string
+                    .is_empty()
+                    .then(|| materials.add(ColorMaterial::from(Color::WHITE)).clone())
+                    .unwrap_or_else(|| q_web_string.single().clone());
+                let mesh_handle = meshes.add(shape::Box::new(1.0, 1.0, 1.0).into());
 
-            commands.spawn(WebHeadBundle {
-                web_head: WebHead::default(),
-                sprite: SpriteBundle {
-                    texture: web_texture.0.clone(),
-                    sprite: Sprite {
-                        custom_size: Some(8.0 * Vec2::ONE),
+                commands.spawn(WebHeadBundle {
+                    web_head: WebHead::default(),
+                    sprite: SpriteBundle {
+                        texture: web_texture.0.clone(),
+                        sprite: Sprite {
+                            custom_size: Some(8.0 * Vec2::ONE),
+                            ..default()
+                        },
+                        transform: Transform::from_translation(
+                            shoot_translation.extend(WEB_Z + 1.0),
+                        ),
                         ..default()
                     },
-                    transform: Transform::from_translation(shoot_translation.extend(WEB_Z + 1.0)),
+                    collider: Collider::ball(0.1),
+                    velocity: Velocity::linear(WEB_SHOOT_SPEED * shoot_direction),
+                    g_scale: GravityScale(0.0),
+                    collision_groups: CollisionGroups {
+                        memberships: GameCollisionGroups::WEB,
+                        filters: GameCollisionGroups::WEB.filter_group(),
+                    },
+                    active_events: ActiveEvents::COLLISION_EVENTS,
                     ..default()
-                },
-                collider: Collider::ball(0.1),
-                velocity: Velocity::linear(WEB_SHOOT_SPEED * shoot_direction),
-                g_scale: GravityScale(0.0),
-                collision_groups: CollisionGroups {
-                    memberships: GameCollisionGroups::WEB,
-                    filters: GameCollisionGroups::WEB.filter_group(),
-                },
-                active_events: ActiveEvents::COLLISION_EVENTS,
-                ..default()
-            });
-            commands.spawn(WebStringBundle {
-                visual: MaterialMesh2dBundle {
-                    mesh: mesh_handle.into(),
-                    material: mat_handle,
-                    transform: Transform {
-                        translation: midpoint.extend(WEB_Z),
-                        rotation: Quat::from_rotation_z(-angle),
-                        scale: Vec3::new(0.0, 0.2, 1.0),
+                });
+                commands.spawn(WebStringBundle {
+                    visual: MaterialMesh2dBundle {
+                        mesh: mesh_handle.into(),
+                        material: mat_handle,
+                        transform: Transform {
+                            translation: midpoint.extend(WEB_Z),
+                            rotation: Quat::from_rotation_z(-angle),
+                            scale: Vec3::new(0.0, 0.2, 1.0),
+                        },
+                        ..default()
                     },
                     ..default()
-                },
-                ..default()
-            });
-        }
-    }
+                });
+            }
+        });
 }
 
 pub fn update_web_string_transform(
@@ -185,6 +186,24 @@ pub fn handle_web_head_collision(
             }
         }
     }
+}
+
+pub fn release_web(
+    q_web: Query<Entity, With<Web>>,
+    mut ev_released_web: EventReader<PlayerEvent>,
+    mut commands: Commands,
+) {
+    ev_released_web
+        .iter()
+        .any(|ev| match ev {
+            PlayerEvent::ReleasedWeb => true,
+            _ => false,
+        })
+        .then(|| {
+            q_web.for_each(|entity| {
+                commands.entity(entity).despawn_recursive();
+            });
+        });
 }
 
 fn midpoint_and_angle_to_x(start: Vec2, end: Vec2) -> (Vec2, f32) {

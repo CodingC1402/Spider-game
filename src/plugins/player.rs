@@ -10,7 +10,7 @@ use self::{
     movement::{apply_accel_when_land, handle_movement},
     shoot_web::{
         despawn_overstretched_web, handle_shoot_web_input, handle_web_head_collision,
-        setup_web_texture, shoot_web, update_web_string_transform, WebOverstretchedEvent,
+        setup_web_texture, shoot_web, update_web_string_transform, release_web, WebOverstretchedEvent,
         WebTexture,
     }, spawn::spawn_player,
 };
@@ -24,7 +24,8 @@ pub enum PlayerEvent {
     Moving(Entity),
     Idle(Entity),
     ChangeDirection(Entity),
-    ShotWeb
+    ShotWeb,
+    ReleasedWeb,
 }
 
 #[derive(Resource, Debug)]
@@ -67,7 +68,8 @@ impl Plugin for PlayerPlugin {
             .add_system(shoot_web)
             .add_system(handle_web_head_collision)
             .add_system(update_web_string_transform)
-            .add_system(despawn_overstretched_web);
+            .add_system(despawn_overstretched_web)
+            .add_system(release_web);
     }
 }
 
