@@ -1,18 +1,14 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::{WorldInspectorPlugin, ResourceInspectorPlugin};
+use bevy_inspector_egui::quick::{WorldInspectorPlugin};
 
-use bevy_rapier2d::prelude::{RapierContext, KinematicCharacterController};
-use components::ComponentsPlugin;
 use plugins::{
     base::BasePlugin, display::DisplayPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
     tilemap::TilemapPlugin,
 };
 
-mod bundles;
-mod components;
+mod data;
 mod entities;
 mod plugins;
-mod prefabs;
 
 fn main() {
     App::new()
@@ -30,7 +26,6 @@ fn main() {
         .add_plugin(PhysicsPlugin)
         .add_plugin(DisplayPlugin)
         .add_plugin(PlayerPlugin)
-        .add_plugin(ComponentsPlugin)
         .add_plugin(WorldInspectorPlugin)
         .run();
 }

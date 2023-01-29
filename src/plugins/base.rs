@@ -1,10 +1,8 @@
-use crate::bundles::player::PlayerBundle;
-
 use super::display::DisplaySettings;
 use bevy::{
     prelude::*,
     window::{WindowDescriptor, WindowPlugin},
-    DefaultPlugins, render::camera::ScalingMode,
+    DefaultPlugins,
 };
 pub struct BasePlugin;
 

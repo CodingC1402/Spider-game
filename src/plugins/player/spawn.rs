@@ -1,13 +1,9 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Sensor, Friction, CoefficientCombineRule, Ccd};
-
-use crate::{
-    bundles::{
-        physics::{ColliderBundle, RigidBodyBundle},
-        player::{PlayerBundle, PlayerFootBundle, PlayerHeadBundle},
-    },
-    components::player::{PlayerInfo, PlayerJump, PlayerMovement},
+use bevy_rapier2d::prelude::{
+    Ccd, CoefficientCombineRule, Collider, Friction, GravityScale, LockedAxes,
 };
+
+use crate::data::{physics::*, player::*};
 
 const PLAYER_NAME: &str = "Player";
 const PLAYER_SIZE: Vec2 = Vec2::splat(16.0);
@@ -53,12 +49,12 @@ pub fn spawn_player(
             jump: PlayerJump {
                 strength: 250.0,
                 air_upward_force: 1800.0,
-                duration: 0.60,
+                duration: 0.5,
                 ..Default::default()
             },
             movement: PlayerMovement {
                 acceleration: 1500.0,
-                landing_accel: 60.0,
+                landing_accel: 100.0,
                 airborne_acceleration: 600.0,
                 max_velocity: 60.0,
                 ..Default::default()
@@ -72,7 +68,7 @@ pub fn spawn_player(
             builder
                 .spawn(TransformBundle::default())
                 .insert(ColliderBundle {
-                    collider: Collider::capsule_x(3.0, 3.5),
+                    collider: Collider::capsule_x(2.0, 3.5),
                     friction: Friction {
                         coefficient: 0.4,
                         combine_rule: CoefficientCombineRule::Min,
@@ -81,38 +77,35 @@ pub fn spawn_player(
                 })
                 .insert(Name::from("Body"));
 
-            builder
-                .spawn(PlayerHeadBundle {
-                    transform: TransformBundle {
-                        local: Transform::from_xyz(0.0, 4.0, 0.0),
-                        ..Default::default()
-                    },
-                    collider: Collider::cuboid(3.0, 2.0),
-                    name: Name::from("Head"),
+            builder.spawn(PlayerHeadBundle {
+                transform: TransformBundle {
+                    local: Transform::from_xyz(0.0, 4.0, 0.0),
                     ..Default::default()
-                });
+                },
+                collider: Collider::cuboid(3.0, 2.0),
+                name: Name::from("Head"),
+                ..Default::default()
+            });
 
-            builder
-                .spawn(PlayerFootBundle {
-                    transform: TransformBundle {
-                        local: Transform::from_xyz(0.0, -5.0, 0.0),
-                        ..Default::default()
-                    },
-                    collider: Collider::cuboid(2.0, 4.0),
-                    name: Name::from("Foot long"),
+            builder.spawn(PlayerFootBundle {
+                transform: TransformBundle {
+                    local: Transform::from_xyz(0.0, -5.0, 0.0),
                     ..Default::default()
-                });
+                },
+                collider: Collider::cuboid(2.0, 4.0),
+                name: Name::from("Foot long"),
+                ..Default::default()
+            });
 
-            builder
-                .spawn(PlayerFootBundle {
-                    transform: TransformBundle {
-                        local: Transform::from_xyz(0.0, -4.0, 0.0),
-                        ..Default::default()
-                    },
-                    collider: Collider::cuboid(6.0, 1.0),
-                    name: Name::from("Foot wide"),
+            builder.spawn(PlayerFootBundle {
+                transform: TransformBundle {
+                    local: Transform::from_xyz(0.0, -4.0, 0.0),
                     ..Default::default()
-                });
+                },
+                collider: Collider::cuboid(6.0, 1.0),
+                name: Name::from("Foot wide"),
+                ..Default::default()
+            });
         })
         .id()
 }

@@ -3,7 +3,7 @@ use std::ops::Not;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::components::{
+use crate::data::{
     player::{Player, PlayerFoot, PlayerInfo, PlayerJump, PlayerHead},
     tilemap::Platform,
 };
