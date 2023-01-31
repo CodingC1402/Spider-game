@@ -1,0 +1,12 @@
+[package]
+name = "sprite_animation"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "0.9.1"
+sprite_animation_derive = { version = "0.1.0", path = "./sprite_animation_derive" }
+strum = { version = "0.24.1", features = ["strum_macros"] }
+

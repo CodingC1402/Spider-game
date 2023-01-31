@@ -2,6 +2,7 @@ mod jump;
 mod movement;
 mod shoot_web;
 pub mod spawn;
+mod animation;
 
 use bevy::prelude::*;
 

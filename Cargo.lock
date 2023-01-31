@@ -3746,6 +3746,7 @@ dependencies = [
  "iyes_loopless",
  "kayak_ui",
  "rand",
+ "sprite_animation",
  "strum",
 ]
 
@@ -3766,6 +3767,23 @@ checksum = "246bfa38fe3db3f1dfc8ca5a2cdeb7348c78be2112740cc0ec8ef18b6d94f830"
 dependencies = [
  "bitflags",
  "num-traits 0.2.15",
+]
+
+[[package]]
+name = "sprite_animation"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "sprite_animation_derive",
+ "strum",
+]
+
+[[package]]
+name = "sprite_animation_derive"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
