@@ -5,25 +5,24 @@ use bevy_rapier2d::prelude::*;
 pub struct WebString;
 
 #[derive(Component, Default, Reflect)]
-pub struct WebHead {
-    pub stuck_on_wall: bool,
-}
+pub struct WebHead;
 
 #[derive(Component, Default, Reflect)]
-pub struct Web;
-
+pub struct Web {
+    pub attached: bool,
+    pub pull_force_id: Option<u8>,
+    pub initial_web_length: Option<f32>,
+}
 
 #[derive(Bundle, Default)]
 pub struct WebStringBundle {
     pub web_string: WebString,
-    pub web: Web,
     pub visual: MaterialMesh2dBundle<ColorMaterial>,
 }
 
 #[derive(Bundle, Default)]
 pub struct WebHeadBundle {
     pub web_head: WebHead,
-    pub web: Web,
     pub sprite: SpriteBundle,
     pub velocity: Velocity,
     pub sensor: Sensor,

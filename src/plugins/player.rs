@@ -9,10 +9,10 @@ use self::{
     jump::{check_if_grounded, check_if_head_bump, handle_jump},
     movement::{apply_accel_when_land, handle_movement},
     shoot_web::{
-        despawn_overstretched_web, handle_shoot_web_input, handle_web_head_collision,
-        setup_web_texture, shoot_web, update_web_string_transform, WebOverstretchedEvent,
-        WebTexture,
-    }, spawn::spawn_player,
+        despawn_web, handle_shoot_web_input, handle_web_head_collision, setup_web_texture,
+        shoot_web, update_web_string_and_pull_force, DespawnWebEvent, WebTexture,
+    },
+    spawn::*,
 };
 
 pub enum PlayerEvent {
@@ -24,7 +24,7 @@ pub enum PlayerEvent {
     Moving(Entity),
     Idle(Entity),
     ChangeDirection(Entity),
-    ShotWeb
+    ShotWeb,
 }
 
 #[derive(Resource, Debug)]
@@ -53,7 +53,7 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(PlayerControl::default())
             .insert_resource(WebTexture::default())
             .add_event::<PlayerEvent>()
-            .add_event::<WebOverstretchedEvent>()
+            .add_event::<DespawnWebEvent>()
             .add_startup_system(setup_web_texture)
             .add_startup_system(spawn_player_at_start)
             // movements
@@ -66,8 +66,11 @@ impl Plugin for PlayerPlugin {
             .add_system(handle_shoot_web_input)
             .add_system(shoot_web)
             .add_system(handle_web_head_collision)
-            .add_system(update_web_string_transform)
-            .add_system(despawn_overstretched_web);
+            .add_system(update_web_string_and_pull_force)
+            .add_system(despawn_web)
+            // testing
+            .add_system(respawn_player)
+            .add_system(adjust_player_pos_to_level);
     }
 }
 

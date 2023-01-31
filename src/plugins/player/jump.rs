@@ -4,7 +4,8 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::data::{
-    player::{Player, PlayerFoot, PlayerInfo, PlayerJump, PlayerHead},
+    physics::ComplexExternalForce,
+    player::{Player, PlayerFoot, PlayerHead, PlayerInfo, PlayerJump},
     tilemap::Platform,
 };
 
@@ -20,7 +21,7 @@ pub fn handle_jump(
             Entity,
             &mut PlayerJump,
             &PlayerInfo,
-            &mut ExternalForce,
+            &mut ComplexExternalForce,
             &mut ExternalImpulse,
         ),
         With<Player>,
@@ -29,9 +30,8 @@ pub fn handle_jump(
     let pressing = input.pressed(control.jump);
     let just_pressed = input.just_pressed(control.jump);
 
-    query
-        .iter_mut()
-        .for_each(|(entity, mut jump_com, info_com, mut force, mut impulse)| {
+    query.iter_mut().for_each(
+        |(entity, mut jump_com, info_com, mut cef, mut impulse)| {
             (just_pressed && info_com.is_grounded).then(|| {
                 impulse.impulse = Vec2::new(impulse.impulse.x, jump_com.strength);
                 jump_com.counter = jump_com.duration;
@@ -42,18 +42,25 @@ pub fn handle_jump(
             (jump_com.counter > 0.0).then(|| {
                 pressing
                     .then(|| {
-                        force.force = Vec2::new(
-                            force.force.x,
-                            jump_com.air_upward_force * (jump_com.counter / jump_com.duration),
-                        );
+                        cef.forces
+                            .entry(jump_com.jump_force_id)
+                            .and_modify(|jump_force| {
+                                jump_force.y = jump_com.air_upward_force
+                                    * (jump_com.counter / jump_com.duration)
+                            });
                         jump_com.counter -= time.delta_seconds();
                     })
                     .unwrap_or_else(|| {
-                        force.force = Vec2::new(force.force.x, 0.0);
+                        cef.forces
+                            .entry(jump_com.jump_force_id)
+                            .and_modify(|jump_force| {
+                                jump_force.y = 0.0
+                            });
                         jump_com.counter = 0.0;
                     });
             });
-        });
+        },
+    );
 }
 
 pub fn check_if_head_bump(
@@ -66,7 +73,9 @@ pub fn check_if_head_bump(
     let (player, mut player_jump, mut force) = q_player.single_mut();
 
     let check_head_then =
-        |child: Entity, func: &dyn Fn() -> bool| {q_head.contains(child).then(func).unwrap_or(false)};
+        |child: Entity, func: &dyn Fn() -> bool| {
+            q_head.contains(child).then(func).unwrap_or(false)
+        };
 
     let check_not_collide = |child: Entity| {
         !check_head_then(child, &|| {
@@ -99,7 +108,9 @@ pub fn check_if_grounded(
     let (player, mut player_info) = q_player.single_mut();
 
     let check_foot_then =
-        |child: Entity, func: &dyn Fn() -> bool| {q_foot.contains(child).then(func).unwrap_or(false)};
+        |child: Entity, func: &dyn Fn() -> bool| {
+            q_foot.contains(child).then(func).unwrap_or(false)
+        };
 
     let check_not_collide = |child: Entity| {
         !check_foot_then(child, &|| {
