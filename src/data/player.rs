@@ -4,17 +4,17 @@ use bevy_rapier2d::prelude::*;
 use super::physics::*;
 
 pub fn register(app: &mut bevy::prelude::App) {
-    app
-    .register_type::<PlayerMovement>()
-    .register_type::<Player>()
-    .register_type::<PlayerJump>()
-    .register_type::<PlayerInfo>();
+    app.register_type::<PlayerMovement>()
+        .register_type::<Player>()
+        .register_type::<PlayerJump>()
+        .register_type::<PlayerInfo>();
 }
 
 #[derive(Component, Default, Reflect)]
 pub struct Player;
 #[derive(Component, Default, Reflect)]
 pub struct PlayerMovement {
+    pub movement_force_id: u8,
     pub airborne_acceleration: f32,
     pub acceleration: f32,
     pub landing_accel: f32,
@@ -29,6 +29,7 @@ pub struct PlayerMovement {
 }
 #[derive(Component, Default, Reflect)]
 pub struct PlayerJump {
+    pub jump_force_id: u8,
     pub strength: f32,
     pub air_upward_force: f32,
 
@@ -57,23 +58,15 @@ pub struct PlayerBundle {
 }
 
 #[derive(Bundle)]
-pub struct PlayerFootBundle {
-    pub transform: TransformBundle,
+pub struct PlayerColliderBundle {
     pub collider: Collider,
-    pub sensor: Sensor,
-    pub foot_comp: PlayerFoot,
-    pub name: Name,
     pub collision_groups: CollisionGroups,
 }
 
-impl Default for PlayerFootBundle {
+impl Default for PlayerColliderBundle {
     fn default() -> Self {
         Self {
-            transform: TransformBundle::default(),
             collider: Collider::default(),
-            sensor: Sensor,
-            foot_comp: PlayerFoot::default(),
-            name: Name::default(),
             collision_groups: CollisionGroups {
                 memberships: GameCollisionGroups::PLAYER,
                 filters: GameCollisionGroups::PLAYER.filter_group(),
@@ -83,10 +76,19 @@ impl Default for PlayerFootBundle {
 }
 
 #[derive(Bundle, Default)]
+pub struct PlayerFootBundle {
+    pub transform: TransformBundle,
+    pub player_collider: PlayerColliderBundle,
+    pub sensor: Sensor,
+    pub foot_comp: PlayerFoot,
+    pub name: Name,
+}
+
+#[derive(Bundle, Default)]
 pub struct PlayerHeadBundle {
     pub transform: TransformBundle,
-    pub collider: Collider,
+    pub player_collider: PlayerColliderBundle,
     pub sensor: Sensor,
     pub head_comp: PlayerHead,
-    pub name: Name
+    pub name: Name,
 }
