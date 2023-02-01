@@ -1,4 +1,4 @@
-use bevy::utils::Uuid;
+use bevy::{utils::Uuid, prelude::info};
 
 use super::{Node, NodeResult};
 use crate::prelude::{AnimState, ToUuid};
@@ -12,8 +12,10 @@ impl AllNode {
     pub fn new() -> Self {
         let mut instance = Self::default();
         instance.id = instance.new_uuid();
-
         instance
+    }
+    pub fn get_id(&self) -> Uuid {
+        self.id
     }
 }
 
@@ -46,7 +48,7 @@ where
                 logic_stack.clear();
                 default
             });
-
+        info!("pass: {}", logic.1);
         NodeResult::LogicNode(
             self.nodes
                 .get(logic.1)

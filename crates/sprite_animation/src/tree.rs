@@ -137,6 +137,10 @@ where
             })
     }
 
+    pub fn insert_unwrap(&mut self, node: AnimNode<T>) -> &mut Self {
+        self.insert_node(node).unwrap()
+    }
+
     pub fn new(mut start_node: AnimNode<T>) -> Self {
         let mut nodes = HashMap::new();
         start_node

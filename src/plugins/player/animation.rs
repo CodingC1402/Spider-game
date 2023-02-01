@@ -1,10 +1,10 @@
+use super::PlayerAnimState;
 use bevy::prelude::*;
 use sprite_animation::prelude::{
     match_node::MatchNode,
     play_node::{PlayNode, SpriteAnimation},
-    *,
+    *, all_node::AllNode,
 };
-use super::PlayerAnimState;
 
 pub const FPS: usize = 14;
 
@@ -20,19 +20,34 @@ fn create_walking_anim() -> AnimNode<PlayerAnimState> {
     AnimNode::PlayNode(PlayNode::new(
         1.,
         true,
-        false,
+        true,
         SpriteAnimation::new_range(FPS, 9, 14),
     ))
 }
-// fn create_ascending_anim() -> SpriteAnimation {
-
-// }
-// fn create_descending_anim() -> SpriteAnimation {
-
-// }
-// fn create_floating_anim() -> SpriteAnimation {
-
-// }
+fn create_jump_anim() -> AnimNode<PlayerAnimState> {
+    AnimNode::PlayNode(PlayNode::new(
+        1.,
+        false,
+        true,
+        SpriteAnimation::new_range(FPS, 18, 20),
+    ))
+}
+fn create_land_anim() -> AnimNode<PlayerAnimState> {
+    AnimNode::PlayNode(PlayNode::new(
+        1.,
+        false,
+        true,
+        SpriteAnimation::new_range(FPS, 21, 23),
+    ))
+}
+fn create_floating_anim() -> AnimNode<PlayerAnimState> {
+    AnimNode::PlayNode(PlayNode::new(
+        1.,
+        false,
+        true,
+        SpriteAnimation::new_range(FPS, 24, 26),
+    ))
+}
 impl ToString for PlayerAnimState {
     fn to_string(&self) -> String {
         String::from(match self {
@@ -64,19 +79,28 @@ impl PlayerAnimationPlugin {
         let mut start_node: MatchNode<PlayerAnimState> = MatchNode::new();
         let idle_node = create_idle_anim();
         let walking_node = create_walking_anim();
+        let jump_node = create_jump_anim();
+        let float_node = create_floating_anim();
+        let land_node = create_land_anim();
+
+        let mut jump_land_all_node = AllNode::new();
+        jump_land_all_node.nodes = vec![jump_node.get_id(), float_node.get_id(), land_node.get_id()];
 
         start_node
             .insert(PlayerAnimState::Idle, idle_node.get_id())
-            .insert(PlayerAnimState::Walking, walking_node.get_id());
+            .insert(PlayerAnimState::Walking, walking_node.get_id())
+            .insert(PlayerAnimState::MidAir, jump_land_all_node.get_id());
 
         let mut tree = PlayerAnimTree(AnimTree::<PlayerAnimState>::new(AnimNode::MatchNode(
             start_node,
         )));
         tree.get_mut()
-            .insert_node(idle_node)
-            .unwrap()
-            .insert_node(walking_node)
-            .unwrap();
+            .insert_unwrap(idle_node)
+            .insert_unwrap(walking_node)
+            .insert_unwrap(jump_node)
+            .insert_unwrap(float_node)
+            .insert_unwrap(land_node)
+            .insert_unwrap(AnimNode::AllNode(jump_land_all_node));
 
         tree
     }
@@ -87,6 +111,5 @@ impl Plugin for PlayerAnimationPlugin {
         app.insert_resource(Self::build_anim_tree())
             .insert_resource(Self::build_anim_tree())
             .add_plugin(AnimPlugin::<PlayerAnimTree, PlayerAnimState>::default());
-
     }
 }

@@ -82,9 +82,9 @@ pub fn test_anim(mut q: Query<&mut AnimData<PlayerAnimState>>, input: Res<Input<
     q.for_each_mut(|mut x| {
         if input.just_pressed(KeyCode::C) {
             x.state = match x.state {
-                PlayerAnimState::Idle => PlayerAnimState::Walking,
+                PlayerAnimState::Idle => PlayerAnimState::MidAir,
                 PlayerAnimState::Walking => PlayerAnimState::Idle,
-                PlayerAnimState::MidAir => PlayerAnimState::Idle,
+                PlayerAnimState::MidAir => PlayerAnimState::Walking,
                 PlayerAnimState::Ascending => PlayerAnimState::Idle,
                 PlayerAnimState::Descending => PlayerAnimState::Idle,
             };
