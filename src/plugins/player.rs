@@ -8,13 +8,23 @@ use bevy::prelude::*;
 
 use self::{
     jump::{check_if_grounded, check_if_head_bump, handle_jump},
-    movement::{apply_accel_when_land, handle_movement},
+    movement::{apply_accel_when_land, handle_movement, test_anim},
     shoot_web::{
         despawn_overstretched_web, handle_shoot_web_input, handle_web_head_collision,
         setup_web_texture, shoot_web, update_web_string_transform, WebOverstretchedEvent,
         WebTexture,
-    }, spawn::spawn_player,
+    }, spawn::spawn_player, animation::PlayerAnimationPlugin,
 };
+
+#[derive(Eq, Hash, PartialEq, Default)]
+pub enum PlayerAnimState {
+    #[default]
+    Idle,
+    Walking,
+    MidAir,
+    Ascending,
+    Descending,
+}
 
 pub enum PlayerEvent {
     Airborne(Entity),
@@ -55,6 +65,7 @@ impl Plugin for PlayerPlugin {
             .insert_resource(WebTexture::default())
             .add_event::<PlayerEvent>()
             .add_event::<WebOverstretchedEvent>()
+            .add_plugin(PlayerAnimationPlugin)
             .add_startup_system(setup_web_texture)
             .add_startup_system(spawn_player_at_start)
             // movements
@@ -63,6 +74,10 @@ impl Plugin for PlayerPlugin {
             .add_system(handle_movement)
             .add_system(check_if_head_bump)
             .add_system(apply_accel_when_land)
+            
+            // animation
+            .add_system(test_anim)
+
             // shoot web
             .add_system(handle_shoot_web_input)
             .add_system(shoot_web)

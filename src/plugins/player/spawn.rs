@@ -7,9 +7,9 @@ use crate::data::{physics::*, player::*};
 
 const PLAYER_NAME: &str = "Player";
 const PLAYER_SIZE: Vec2 = Vec2::splat(16.0);
-const PLAYER_SPRITE_SIZE: Vec2 = Vec2::splat(512.0);
-const PLAYER_SPRITE_PATH: &str = "spider.png";
-const PLAYER_SPRITE_ROW_COL: [usize; 2] = [1, 1];
+const PLAYER_SPRITE_SIZE: Vec2 = Vec2::splat(32.0);
+const PLAYER_SPRITE_PATH: &str = "spider_sprite_sheet.png";
+const PLAYER_SPRITE_ROW_COL: [usize; 2] = [9, 16];
 const PLAYER_SPRITE_PADDING: Option<Vec2> = None;
 const PLAYER_SPRITE_OFFSET: Option<Vec2> = None;
 

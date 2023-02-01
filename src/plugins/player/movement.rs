@@ -1,9 +1,11 @@
 use bevy::prelude::*;
+use bevy_inspector_egui::egui::Key;
 use bevy_rapier2d::prelude::{ExternalForce, ExternalImpulse, Velocity};
+use sprite_animation::prelude::AnimData;
 
 use crate::data::player::{Player, PlayerInfo, PlayerJump, PlayerMovement};
 
-use super::{PlayerControl, PlayerEvent};
+use super::{PlayerControl, PlayerEvent, PlayerAnimState};
 
 pub fn handle_movement(
     input: Res<Input<KeyCode>>,
@@ -65,4 +67,18 @@ pub fn apply_accel_when_land(
     });
 }
 
-pub fn send_vel_based_event(mut e_writer: EventWriter<PlayerEvent>) {}
+pub fn test_anim(mut q: Query<&mut AnimData<PlayerAnimState>>, input: Res<Input<KeyCode>>) {
+    q.for_each_mut(|mut x| {
+        if input.just_pressed(KeyCode::C) {
+            x.state = match x.state {
+                PlayerAnimState::Idle => PlayerAnimState::Walking,
+                PlayerAnimState::Walking => PlayerAnimState::Idle,
+                PlayerAnimState::MidAir => PlayerAnimState::Idle,
+                PlayerAnimState::Ascending => PlayerAnimState::Idle,
+                PlayerAnimState::Descending => PlayerAnimState::Idle,
+            };
+
+            info!("Current state is {}", x.state.to_string());
+        };
+    });
+}
