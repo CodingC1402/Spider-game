@@ -6,7 +6,7 @@ use bevy_rapier2d::prelude::{
 use crate::data::{physics::*, player::*};
 
 const PLAYER_NAME: &str = "Player";
-const PLAYER_SIZE: Vec2 = Vec2::splat(16.0);
+const PLAYER_SIZE: Vec2 = Vec2::splat(24.0);
 const PLAYER_SPRITE_SIZE: Vec2 = Vec2::splat(32.0);
 const PLAYER_SPRITE_PATH: &str = "spider_sprite_sheet.png";
 const PLAYER_SPRITE_ROW_COL: [usize; 2] = [9, 16];

@@ -11,7 +11,7 @@ impl ExtraUuidUtil for Uuid {
 }
 
 pub trait ToUuid {
-    fn to_uuid(&self) -> Uuid {
-        Uuid::from_object(&self)
+    fn new_uuid(&self) -> Uuid {
+        Uuid::new_v4()
     }
 }

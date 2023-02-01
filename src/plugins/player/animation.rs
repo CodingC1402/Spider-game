@@ -10,7 +10,7 @@ pub const FPS: usize = 14;
 
 fn create_idle_anim() -> AnimNode<PlayerAnimState> {
     AnimNode::PlayNode(PlayNode::new(
-        1.,
+        0.4,
         true,
         SpriteAnimation::new_range(FPS, 0, 4),
     ))

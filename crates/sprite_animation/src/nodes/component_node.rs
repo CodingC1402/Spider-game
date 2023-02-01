@@ -26,7 +26,7 @@ impl ComponentNode {
             next
         };
 
-        instance.id = instance.to_uuid();
+        instance.id = instance.new_uuid();
         instance
     }
 }

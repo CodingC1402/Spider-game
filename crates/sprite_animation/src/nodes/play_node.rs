@@ -90,7 +90,7 @@ impl PlayNode {
             anim,
             ..Default::default()
         };
-        instance.id = instance.to_uuid();
+        instance.id = instance.new_uuid();
 
         instance
     }
@@ -147,7 +147,7 @@ impl PlayNode {
         };
 
         let return_old_frame = || {
-            let new_time = time.sub(delta_time);
+            let new_time = time.sub(delta_time * self.speed);
             Some(PlayNodeResult::Sprite(SpriteResult {
                 delay: new_time,
                 keyframe_index: index,

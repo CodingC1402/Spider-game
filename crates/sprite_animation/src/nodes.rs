@@ -28,15 +28,15 @@ impl<T> AnimNode<T> where T : Hash + Eq + Default {
     pub fn set_default_id(&mut self) -> Uuid {
         match self {
             AnimNode::PlayNode(inner) => {
-                inner.id = inner.to_uuid();
+                inner.id = inner.new_uuid();
                 inner.id
             },
             AnimNode::MatchNode(inner) => {
-                inner.id = inner.to_uuid();
+                inner.id = inner.new_uuid();
                 inner.id
             },
             AnimNode::ComponentNode(inner) => {
-                inner.id = inner.to_uuid();
+                inner.id = inner.new_uuid();
                 inner.id
             }
         }

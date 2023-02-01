@@ -39,7 +39,7 @@ where
 
     pub fn new() -> MatchNode<T> {
         let mut instance = MatchNode::default();
-        instance.id = instance.to_uuid();
+        instance.id = instance.new_uuid();
 
         instance
     }
