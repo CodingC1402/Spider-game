@@ -9,7 +9,7 @@ pub struct NodeComponentData {
 
 /// Has to be in the same entity that contain the animation controller
 #[derive(Component)]
-pub struct ControlNodeComponent {
+pub struct ComponentNodeData {
     pub data: HashMap<Uuid, NodeComponentData>,
 }
 

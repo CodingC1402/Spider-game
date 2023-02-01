@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 use crate::derive::*;
+use crate::prelude::AnimState;
 use bevy::prelude::warn;
 use bevy::utils::Uuid;
 
@@ -15,7 +16,7 @@ where
 }
 impl<T> MatchNode<T>
 where
-    T: Hash + Eq + Default + ToString,
+    T: AnimState,
 {
     fn get_fallback(&self) -> Option<Uuid> {
         self.pair.values().next().and_then(|id| Some(*id))
@@ -25,7 +26,7 @@ where
 impl<T> ToUuid for MatchNode<T> where T: Hash + Eq + Default {}
 impl<T> MatchNode<T>
 where
-    T: Hash + Eq + Default + ToString,
+    T: AnimState,
 {
     pub fn get_next(&self, state: T) -> Option<&Uuid> {
         self.pair.get(&state)

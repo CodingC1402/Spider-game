@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.9.1"
+evmap = "10.0.2"
 sprite_animation_derive = { version = "0.1.0", path = "./sprite_animation_derive" }
 strum = { version = "0.24.1", features = ["strum_macros"] }
 
