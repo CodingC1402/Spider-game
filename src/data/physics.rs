@@ -59,4 +59,8 @@ impl ComplexExternalForce {
     pub fn next_force(&self) -> u8 {
         self.forces.len() as u8
     }
+
+    pub fn composite_force(&self) -> Vec2 {
+        self.forces.values().sum()
+    }
 }

@@ -30,6 +30,12 @@ pub struct PlayerMovement {
     pub stop_velocity: f32,
     pub axis: f32,
 }
+
+impl PlayerMovement {
+    pub const NORM_AIR_ACCEL: f32 = 600.0;
+    pub const SWINGING_AIR_ACCEL: f32 = 1000.0;
+}
+
 #[derive(Component, Default, Reflect)]
 pub struct PlayerJump {
     pub jump_force_id: u8,

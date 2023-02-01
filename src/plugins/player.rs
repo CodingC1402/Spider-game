@@ -58,6 +58,9 @@ impl Default for PlayerControl {
     }
 }
 
+#[derive(Resource, Debug)]
+pub struct PlayerSwingDirection(f32);
+
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {

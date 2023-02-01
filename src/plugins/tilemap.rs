@@ -6,7 +6,7 @@ mod spawn;
 
 const MAP_PATH: &str = "ldtk.ldtk";
 const START_LEVEL: usize = 0;
-const LEVELS: &[&str] = &["Level_0", "Level_1"];
+const LEVELS: &[&str] = &["Level_0", "Level_1", "Level_2"];
 const DARK_CAVE_LAYER: &str = "DarkCave";
 const SPIKES_LAYER: &str = "Spikes";
 const DARK_TERRAIN: i32 = 1;
@@ -65,4 +65,12 @@ pub fn change_level(
             evw_tilemap.send(TilemapEvent::ChangedLevel(new_lvl_index));
         }
     });
+}
+
+pub fn current_level_index(level_selection: &LevelSelection) -> Option<usize> {
+    if let LevelSelection::Identifier(ref id) = *level_selection {
+        LEVELS.iter().position(|level| *level == id)
+    } else {
+        None
+    }
 }

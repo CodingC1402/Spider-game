@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 
 use bevy::prelude::*;
+use bevy_ecs_ldtk::LevelSelection;
 use bevy_rapier2d::prelude::{
     Ccd, CoefficientCombineRule, Collider, CollisionGroups, Friction, GravityScale, LockedAxes,
 };
 
 use crate::{
     data::{physics::*, player::*},
-    plugins::tilemap::TilemapEvent,
+    plugins::tilemap::{self, TilemapEvent},
 };
 
 const PLAYER_NAME: &str = "Player";
@@ -65,7 +66,7 @@ pub fn spawn_player(
                 movement_force_id: 0,
                 acceleration: 1500.0,
                 landing_accel: 100.0,
-                airborne_acceleration: 600.0,
+                airborne_acceleration: PlayerMovement::NORM_AIR_ACCEL,
                 max_velocity: 60.0,
                 ..Default::default()
             },
@@ -134,15 +135,20 @@ pub fn spawn_player(
         .id()
 }
 
-// FOR EASE OF TESTING
+// FUNCTIONS FOR EASE OF TESTING
 //
 pub fn respawn_player(
     mut q_player: Query<&mut Transform, With<Player>>,
     input: Res<Input<KeyCode>>,
+    level_selection: ResMut<LevelSelection>,
 ) {
     input.just_pressed(KeyCode::Back).then(|| {
-        let mut player = q_player.single_mut();
-        player.translation = Vec3::new(50.0, 50.0, 900.0);
+        match tilemap::current_level_index(&level_selection) {
+            Some(index) => {
+                move_player_to_spawn_point(&mut q_player, index);
+            }
+            _ => (),
+        }
     });
 }
 
@@ -152,14 +158,22 @@ pub fn adjust_player_pos_to_level(
 ) {
     evr_tilemap.iter().find(|ev| match ev {
         TilemapEvent::ChangedLevel(level) => {
-            let mut player = q_player.single_mut();
-            match *level {
-                0 => player.translation = Vec3::new(50.0, 50.0, 900.0),
-                1 => player.translation = Vec3::new(340.0, 100.0, 900.0),
-                _ => (),
-            };
+            move_player_to_spawn_point(&mut q_player, *level);
             true
         }
         _ => false,
     });
+}
+
+fn move_player_to_spawn_point(
+    q_player: &mut Query<&mut Transform, With<Player>>,
+    level_index: usize,
+) {
+    let mut player = q_player.single_mut();
+    player.translation = match level_index {
+        0 => Vec3::new(50.0, 50.0, 900.0),
+        1 => Vec3::new(340.0, 82.0, 900.0),
+        2 => Vec3::new(520.0, 100.0, 900.0),
+        _ => Vec3::ZERO,
+    };
 }

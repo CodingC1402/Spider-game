@@ -40,12 +40,12 @@ pub fn handle_movement(
     let reduce_vel = || {
         vel.linvel = Vec2::new(0.0, vel.linvel.y);
     };
-    let web_unattached = q_web
+    let web_attached = q_web
         .is_empty()
         .not()
         .then_some(|| q_web.single().attached.then_some(true))
-        .is_none();
-    ((info.is_grounded || web_unattached) && vel_vec <= 0.0).then(reduce_vel);
+        .is_some();
+    ((info.is_grounded || !web_attached) && vel_vec <= 0.0).then(reduce_vel);
 
     cef.forces
         .entry(movement.movement_force_id)
@@ -58,7 +58,7 @@ pub fn handle_movement(
                             .then_some(movement.acceleration)
                             .unwrap_or(movement.airborne_acceleration),
                 )
-                .unwrap_or(0.0);
+                .unwrap_or(0.0)
         });
 }
 
