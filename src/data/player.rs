@@ -1,5 +1,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use sprite_animation::prelude::AnimData;
+
+use crate::plugins::player::PlayerAnimState;
 
 use super::physics::*;
 
@@ -55,6 +58,7 @@ pub struct PlayerBundle {
     pub info: PlayerInfo,
     pub movement: PlayerMovement,
     pub name: Name,
+    pub anim: AnimData<PlayerAnimState>
 }
 
 #[derive(Bundle)]

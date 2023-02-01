@@ -1705,6 +1705,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
+name = "evmap"
+version = "10.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e3ea06a83f97d3dc2eb06e51e7a729b418f0717a5558a5c870e3d5156dc558d"
+dependencies = [
+ "hashbag",
+ "slab",
+ "smallvec",
+]
+
+[[package]]
 name = "exr"
 version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2076,6 +2087,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "hashbag"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de6127f031a7cae17eadc14a56738d01b2912c985d3dba0e597c8fccea49622b"
 
 [[package]]
 name = "hashbrown"
@@ -3746,6 +3763,7 @@ dependencies = [
  "iyes_loopless",
  "kayak_ui",
  "rand",
+ "sprite_animation",
  "strum",
 ]
 
@@ -3766,6 +3784,24 @@ checksum = "246bfa38fe3db3f1dfc8ca5a2cdeb7348c78be2112740cc0ec8ef18b6d94f830"
 dependencies = [
  "bitflags",
  "num-traits 0.2.15",
+]
+
+[[package]]
+name = "sprite_animation"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "evmap",
+ "sprite_animation_derive",
+ "strum",
+]
+
+[[package]]
+name = "sprite_animation_derive"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
