@@ -13,7 +13,7 @@ use self::{
         despawn_web, handle_shoot_web_input, handle_web_head_collision, setup_web_texture,
         shoot_web, update_web_string_and_pull_force, DespawnWebEvent, WebTexture,
     },
-    spawn::*,
+    spawn::*, animation::PlayerAnimationPlugin,
 };
 
 #[derive(Eq, Hash, PartialEq, Default)]
@@ -64,7 +64,6 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(PlayerControl::default())
             .insert_resource(WebTexture::default())
             .add_event::<PlayerEvent>()
-            .add_event::<WebOverstretchedEvent>()
             .add_event::<DespawnWebEvent>()
             .add_startup_system(setup_web_texture)
             .add_startup_system(spawn_player_at_start)
