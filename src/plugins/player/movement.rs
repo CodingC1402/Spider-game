@@ -1,9 +1,15 @@
+use std::ops::Not;
+
 use bevy::prelude::*;
 use bevy_inspector_egui::egui::Key;
 use bevy_rapier2d::prelude::{ExternalForce, ExternalImpulse, Velocity};
 use sprite_animation::prelude::AnimData;
 
-use crate::data::player::{Player, PlayerInfo, PlayerJump, PlayerMovement};
+use crate::data::{
+    physics::ComplexExternalForce,
+    player::{Player, PlayerInfo, PlayerJump, PlayerMovement},
+    web::Web,
+};
 
 use super::{PlayerControl, PlayerEvent, PlayerAnimState};
 
@@ -15,12 +21,13 @@ pub fn handle_movement(
             &mut PlayerMovement,
             &PlayerInfo,
             &mut Velocity,
-            &mut ExternalForce,
+            &mut ComplexExternalForce,
         ),
         With<Player>,
     >,
+    q_web: Query<&Web>,
 ) {
-    let (mut movement, info, mut vel, mut force) = query.single_mut();
+    let (mut movement, info, mut vel, mut cef) = query.single_mut();
     let old_value = movement.axis;
 
     movement.axis = input.pressed(control.left).then_some(-1.0).unwrap_or(0.0)
@@ -33,9 +40,17 @@ pub fn handle_movement(
     let reduce_vel = || {
         vel.linvel = Vec2::new(0.0, vel.linvel.y);
     };
-    let mut apply_force_to_player = || {
-        force.force = Vec2::new(
-            (linvel.x.abs() < movement.max_velocity)
+    let web_unattached = q_web
+        .is_empty()
+        .not()
+        .then_some(|| q_web.single().attached.then_some(true))
+        .is_none();
+    ((info.is_grounded || web_unattached) && vel_vec <= 0.0).then(reduce_vel);
+
+    cef.forces
+        .entry(movement.movement_force_id)
+        .and_modify(|move_force| {
+            move_force.x = (linvel.x.abs() < movement.max_velocity)
                 .then_some(
                     movement.axis
                         * info
@@ -43,13 +58,8 @@ pub fn handle_movement(
                             .then_some(movement.acceleration)
                             .unwrap_or(movement.airborne_acceleration),
                 )
-                .unwrap_or(0.0),
-            force.force.y,
-        )
-    };
-
-    (vel_vec <= 0.0).then(reduce_vel);
-    apply_force_to_player();
+                .unwrap_or(0.0);
+        });
 }
 
 pub fn apply_accel_when_land(
@@ -61,7 +71,7 @@ pub fn apply_accel_when_land(
             let (movement, mut force) = query
                 .get_mut(*player)
                 .expect("Player entity in event is not qualified as a player");
-            
+
             force.impulse += Vec2::new(movement.landing_accel * movement.axis, 0.0);
         }
     });

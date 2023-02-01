@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::{Collider, RigidBody, Velocity, GravityScale, Friction, ColliderMassProperties, LockedAxes, Sleeping, Ccd, ExternalForce, ExternalImpulse, Group, CollisionGroups};
+use bevy_rapier2d::prelude::*;
 
 pub struct GameCollisionGroups;
 
@@ -36,7 +38,8 @@ pub struct RigidBodyBundle {
     pub rotation_constraints: LockedAxes,
     pub force: ExternalForce,
     pub impulse: ExternalImpulse,
-
+    pub complex_ef: ComplexExternalForce,
+    pub damping: Damping,
 }
 
 #[derive(Clone, Debug, Default, Bundle)]
@@ -45,4 +48,15 @@ pub struct ColliderBundle {
     pub density: ColliderMassProperties,
     pub friction: Friction,
     pub collision_groups: CollisionGroups,
+}
+
+#[derive(Component, Clone, Debug, Default)]
+pub struct ComplexExternalForce {
+    pub forces: HashMap<u8, Vec2>,
+}
+
+impl ComplexExternalForce {
+    pub fn next_force(&self) -> u8 {
+        self.forces.len() as u8
+    }
 }
