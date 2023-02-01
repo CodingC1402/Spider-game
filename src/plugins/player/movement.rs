@@ -2,7 +2,7 @@ use std::ops::Not;
 
 use bevy::prelude::*;
 
-use bevy_rapier2d::prelude::{ExternalImpulse, Velocity};
+use bevy_rapier2d::prelude::{Velocity, ExternalForce};
 
 use sprite_animation::prelude::AnimData;
 
@@ -65,7 +65,7 @@ pub fn handle_movement(
 
 pub fn apply_accel_when_land(
     mut e_reader: EventReader<PlayerEvent>,
-    mut query: Query<(&PlayerMovement, &mut ExternalImpulse), With<Player>>,
+    mut query: Query<(&PlayerMovement, &mut ExternalForce), With<Player>>,
 ) {
     e_reader.iter().for_each(|e| {
         if let PlayerEvent::Grounded(player) = e {
@@ -73,7 +73,7 @@ pub fn apply_accel_when_land(
                 .get_mut(*player)
                 .expect("Player entity in event is not qualified as a player");
 
-            force.impulse += Vec2::new(movement.landing_accel * movement.axis, 0.0);
+            force.force += Vec2::new(movement.landing_accel * movement.axis, 0.0);
         }
     });
 }
@@ -82,14 +82,14 @@ pub fn test_anim(mut q: Query<&mut AnimData<PlayerAnimState>>, input: Res<Input<
     q.for_each_mut(|mut x| {
         if input.just_pressed(KeyCode::C) {
             x.state = match x.state {
-                PlayerAnimState::Idle => PlayerAnimState::MidAir,
+                PlayerAnimState::Idle => PlayerAnimState::Jumping,
                 PlayerAnimState::Walking => PlayerAnimState::Idle,
                 PlayerAnimState::MidAir => PlayerAnimState::Walking,
-                PlayerAnimState::Ascending => PlayerAnimState::Idle,
-                PlayerAnimState::Descending => PlayerAnimState::Idle,
+                PlayerAnimState::Jumping => PlayerAnimState::Walking,
+                PlayerAnimState::Landing => PlayerAnimState::Idle,
+                PlayerAnimState::Hurt => PlayerAnimState::Idle,
+                
             };
-
-            info!("Current state is {}", x.state.to_string());
         };
     });
 }

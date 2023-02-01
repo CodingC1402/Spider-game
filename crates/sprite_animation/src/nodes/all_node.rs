@@ -7,6 +7,7 @@ use crate::prelude::{AnimState, ToUuid};
 pub struct AllNode {
     pub id: Uuid,
     pub nodes: Vec<Uuid>,
+    pub is_loop: bool,
 }
 impl AllNode {
     pub fn new() -> Self {
@@ -39,8 +40,10 @@ where
                     .1
                     .ge(&self.nodes.len())
                     .then(|| {
-                        logic_stack.clear();
-                        default
+                        self.is_loop.then(|| {
+                            logic_stack.clear();
+                            default
+                        }).unwrap_or((self.id, self.nodes.len() - 1))
                     })
                     .unwrap_or((self.id, logic.1)),
             )
@@ -48,7 +51,6 @@ where
                 logic_stack.clear();
                 default
             });
-        info!("pass: {}", logic.1);
         NodeResult::LogicNode(
             self.nodes
                 .get(logic.1)

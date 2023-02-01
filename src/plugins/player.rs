@@ -22,8 +22,9 @@ pub enum PlayerAnimState {
     Idle,
     Walking,
     MidAir,
-    Ascending,
-    Descending,
+    Jumping,
+    Landing,
+    Hurt
 }
 
 pub enum PlayerEvent {

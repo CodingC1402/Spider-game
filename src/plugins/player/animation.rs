@@ -6,7 +6,7 @@ use sprite_animation::prelude::{
     *, all_node::AllNode,
 };
 
-pub const FPS: usize = 14;
+pub const FPS: usize = 12;
 
 fn create_idle_anim() -> AnimNode<PlayerAnimState> {
     AnimNode::PlayNode(PlayNode::new(
@@ -32,15 +32,15 @@ fn create_jump_anim() -> AnimNode<PlayerAnimState> {
         SpriteAnimation::new_range(FPS, 18, 20),
     ))
 }
-fn create_land_anim() -> AnimNode<PlayerAnimState> {
+fn create_floating_anim() -> AnimNode<PlayerAnimState> {
     AnimNode::PlayNode(PlayNode::new(
-        1.,
+        0.3,
         false,
         true,
-        SpriteAnimation::new_range(FPS, 21, 23),
+        SpriteAnimation::new(FPS, &[21, 22, 23, 22]),
     ))
 }
-fn create_floating_anim() -> AnimNode<PlayerAnimState> {
+fn create_land_anim() -> AnimNode<PlayerAnimState> {
     AnimNode::PlayNode(PlayNode::new(
         1.,
         false,
@@ -54,8 +54,10 @@ impl ToString for PlayerAnimState {
             PlayerAnimState::Idle => "PlayerState::Idle",
             PlayerAnimState::Walking => "PlayerState::Walking",
             PlayerAnimState::MidAir => "PlayerState::MidAir",
-            PlayerAnimState::Ascending => "PlayerState::Ascending",
-            PlayerAnimState::Descending => "PlayerState::Descending",
+            PlayerAnimState::Landing => "PlayerAnimState::Landing",
+            PlayerAnimState::Jumping => "PlayerAnimState::Jumping",
+            PlayerAnimState::Hurt => "PlayerAnimState::Hurt",
+            
         })
     }
 }
@@ -67,7 +69,6 @@ impl AnimTreeWrap<PlayerAnimState> for PlayerAnimTree {
     fn get(&self) -> &AnimTree<PlayerAnimState> {
         &self.0
     }
-
     fn get_mut(&mut self) -> &mut AnimTree<PlayerAnimState> {
         &mut self.0
     }
@@ -84,12 +85,13 @@ impl PlayerAnimationPlugin {
         let land_node = create_land_anim();
 
         let mut jump_land_all_node = AllNode::new();
-        jump_land_all_node.nodes = vec![jump_node.get_id(), float_node.get_id(), land_node.get_id()];
+        jump_land_all_node.nodes = vec![jump_node.get_id(), float_node.get_id()];
+        jump_land_all_node.is_loop = false;
 
         start_node
             .insert(PlayerAnimState::Idle, idle_node.get_id())
             .insert(PlayerAnimState::Walking, walking_node.get_id())
-            .insert(PlayerAnimState::MidAir, jump_land_all_node.get_id());
+            .insert(PlayerAnimState::Jumping, jump_land_all_node.get_id());
 
         let mut tree = PlayerAnimTree(AnimTree::<PlayerAnimState>::new(AnimNode::MatchNode(
             start_node,
@@ -101,7 +103,6 @@ impl PlayerAnimationPlugin {
             .insert_unwrap(float_node)
             .insert_unwrap(land_node)
             .insert_unwrap(AnimNode::AllNode(jump_land_all_node));
-
         tree
     }
 }

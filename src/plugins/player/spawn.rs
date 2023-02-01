@@ -57,15 +57,15 @@ pub fn spawn_player(
             },
             jump: PlayerJump {
                 jump_force_id: 1,
-                strength: 250.0,
-                air_upward_force: 1800.0,
+                strength: 150.0,
+                air_upward_force: 1300.0,
                 duration: 0.5,
                 ..Default::default()
             },
             movement: PlayerMovement {
                 movement_force_id: 0,
                 acceleration: 1500.0,
-                landing_accel: 100.0,
+                landing_accel: 1000.0,
                 airborne_acceleration: PlayerMovement::NORM_AIR_ACCEL,
                 max_velocity: 60.0,
                 ..Default::default()
@@ -78,9 +78,50 @@ pub fn spawn_player(
         .insert(Name::from("Player"))
         .with_children(|builder| {
             builder
-                .spawn(TransformBundle::default())
+            .spawn(TransformBundle {
+                local: Transform::from_xyz(-3.2, -3.8, 0.0),
+                ..Default::default()
+            })
+            .insert(ColliderBundle {
+                collider: Collider::capsule_y(0.2, 1.0),
+                friction: Friction {
+                    coefficient: 0.0,
+                    combine_rule: CoefficientCombineRule::Min,
+                },
+                collision_groups: CollisionGroups {
+                    memberships: GameCollisionGroups::PLAYER,
+                    filters: GameCollisionGroups::PLAYER.filter_group(),
+                },
+                ..Default::default()
+            })
+            .insert(Name::from("Padding"));
+
+            builder
+            .spawn(TransformBundle {
+                local: Transform::from_xyz(3.2, -3.8, 0.0),
+                ..Default::default()
+            })
+            .insert(ColliderBundle {
+                collider: Collider::capsule_y(0.2, 1.0),
+                friction: Friction {
+                    coefficient: 0.0,
+                    combine_rule: CoefficientCombineRule::Min,
+                },
+                collision_groups: CollisionGroups {
+                    memberships: GameCollisionGroups::PLAYER,
+                    filters: GameCollisionGroups::PLAYER.filter_group(),
+                },
+                ..Default::default()
+            })
+            .insert(Name::from("Padding"));
+
+            builder
+                .spawn(TransformBundle {
+                    local: Transform::from_xyz(0.0, -3.8, 0.0),
+                    ..Default::default()
+                })
                 .insert(ColliderBundle {
-                    collider: Collider::capsule_x(2.0, 3.5),
+                    collider: Collider::cuboid(3.5, 2.4),
                     friction: Friction {
                         coefficient: 0.4,
                         combine_rule: CoefficientCombineRule::Min,
@@ -95,11 +136,11 @@ pub fn spawn_player(
 
             builder.spawn(PlayerHeadBundle {
                 transform: TransformBundle {
-                    local: Transform::from_xyz(0.0, 4.0, 0.0),
+                    local: Transform::from_xyz(0.0, 0.0, 0.0),
                     ..Default::default()
                 },
                 player_collider: PlayerColliderBundle {
-                    collider: Collider::cuboid(3.0, 2.0),
+                    collider: Collider::cuboid(1.5, 1.5),
                     ..default()
                 },
                 name: Name::from("Head"),
@@ -108,7 +149,7 @@ pub fn spawn_player(
 
             builder.spawn(PlayerFootBundle {
                 transform: TransformBundle {
-                    local: Transform::from_xyz(0.0, -5.0, 0.0),
+                    local: Transform::from_xyz(0.0, -7.0, 0.0),
                     ..Default::default()
                 },
                 player_collider: PlayerColliderBundle {
@@ -121,11 +162,11 @@ pub fn spawn_player(
 
             builder.spawn(PlayerFootBundle {
                 transform: TransformBundle {
-                    local: Transform::from_xyz(0.0, -4.0, 0.0),
+                    local: Transform::from_xyz(0.0, -7.0, 0.0),
                     ..Default::default()
                 },
                 player_collider: PlayerColliderBundle {
-                    collider: Collider::cuboid(6.0, 1.0),
+                    collider: Collider::cuboid(3.0, 1.0),
                     ..default()
                 },
                 name: Name::from("Foot wide"),
