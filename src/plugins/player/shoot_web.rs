@@ -1,4 +1,5 @@
 use crate::data::physics::ComplexExternalForce;
+use crate::data::player::PlayerMovement;
 use crate::data::tilemap::WebStickable;
 use crate::data::web::*;
 use crate::data::{
@@ -15,9 +16,8 @@ use super::PlayerEvent;
 
 const WEB_SPRITE_PATH: &str = "web.png";
 const WEB_SHOOT_SPEED: f32 = 150.0;
-// const WEB_MAX_STRETCH: f32 = 100.0;
 const WEB_Z: f32 = 100.0;
-const WEB_PULL_FORCE_SCALE: f32 = 80.0;
+const WEB_PULL_FORCE_SCALE: f32 = 90.0;
 
 #[derive(Resource, Default)]
 pub struct WebTexture(Handle<Image>);
@@ -175,7 +175,7 @@ pub fn handle_web_head_collision(
     mut q_web_head: Query<(Entity, &mut Velocity, &GlobalTransform), With<WebHead>>,
     mut q_web: Query<(Entity, &mut Web)>,
     q_web_stickable: Query<Entity, With<WebStickable>>,
-    q_player_transform: Query<&GlobalTransform, With<Player>>,
+    mut q_player: Query<(&GlobalTransform, &mut PlayerMovement), With<Player>>,
     mut q_cef: Query<&mut ComplexExternalForce, With<Player>>,
     mut evr_collisions: EventReader<CollisionEvent>,
     mut commands: Commands,
@@ -184,7 +184,7 @@ pub fn handle_web_head_collision(
         return;
     }
     let (web_head, mut web_head_vel, web_head_transform) = q_web_head.single_mut();
-    let player_transform = q_player_transform.single();
+    let (player_transform, mut player_movement) = q_player.single_mut();
     for collision in evr_collisions.iter() {
         if let CollisionEvent::Started(entity_one, entity_two, _) = collision {
             let other_entity = (web_head == *entity_one)
@@ -208,6 +208,7 @@ pub fn handle_web_head_collision(
                     web.attached = true;
                     web.pull_force_id = Some(next_force_id);
                     web.initial_web_length = Some(pull_dir.length());
+                    player_movement.airborne_acceleration = PlayerMovement::SWINGING_AIR_ACCEL;
                 })
                 .unwrap_or_else(|| {
                     q_web.for_each(|(entity, _)| {
@@ -220,7 +221,7 @@ pub fn handle_web_head_collision(
 
 pub fn despawn_web(
     q_web: Query<(Entity, &Web)>,
-    mut q_player_cef: Query<&mut ComplexExternalForce, With<Player>>,
+    mut q_cef_movement: Query<(&mut ComplexExternalForce, &mut PlayerMovement), With<Player>>,
     evr_despawn_web: EventReader<DespawnWebEvent>,
     mut commands: Commands,
 ) {
@@ -229,10 +230,11 @@ pub fn despawn_web(
     }
     evr_despawn_web.clear();
     let (web_entity, web) = q_web.single();
-    let mut cef = q_player_cef.single_mut();
+    let (mut cef, mut movement) = q_cef_movement.single_mut();
     if let Some(pull_force_id) = web.pull_force_id {
         cef.forces.remove(&pull_force_id);
     }
+    movement.airborne_acceleration = PlayerMovement::NORM_AIR_ACCEL;
     commands.entity(web_entity).despawn_recursive();
 }
 
