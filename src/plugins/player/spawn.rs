@@ -161,7 +161,6 @@ pub fn adjust_player_pos_to_level(
             move_player_to_spawn_point(&mut q_player, *level);
             true
         }
-        _ => false,
     });
 }
 

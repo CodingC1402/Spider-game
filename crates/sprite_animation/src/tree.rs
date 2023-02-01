@@ -5,7 +5,7 @@ use std::{
     ops::Deref,
 };
 
-use crate::prelude::{play_node::PlayNodeResult, AnimNode};
+use crate::prelude::{Node, *};
 use bevy::{prelude::*, utils::Uuid};
 
 pub trait AnimTreeWrap<T>: Resource
@@ -28,10 +28,18 @@ where
 
 pub trait AnimState: Hash + Eq + Default + ToString + Send + Sync + 'static {}
 
+pub enum AnimTreeUpdateResult {
+    Update(AnimTreeUpdate),
+    Finished,
+    NoUpdate,
+}
+/// This is to return the final result of the update.
 pub struct AnimTreeUpdate {
     pub time: f32,
     pub keyframe_index: usize,
     pub atlas_index: usize,
+    pub current_node: Uuid,
+    pub logic_stack: Vec<(Uuid, usize)>,
 }
 
 #[derive(Resource, Default)]
@@ -50,43 +58,56 @@ where
 {
     pub fn update(
         &self,
+        data: &AnimData<T>,
         delta_time: f32,
-        time: f32,
-        index: usize,
-        state: &T,
-    ) -> Result<AnimTreeUpdate, String> {
+        mut logic_stack: &mut Vec<(Uuid, usize)>
+    ) -> Result<AnimTreeUpdateResult, String> {
         self.handle_update(
             self.get_node(self.start_node),
+            data,
             delta_time,
-            time,
-            index,
-            state,
+            &mut logic_stack,
         )
     }
     fn handle_update(
         &self,
         node: &AnimNode<T>,
+        data: &AnimData<T>,
         delta_time: f32,
-        time: f32,
-        index: usize,
-        state: &T,
-    ) -> Result<AnimTreeUpdate, String> {
-        match node {
-            AnimNode::PlayNode(node) => match node.execute(time, delta_time, index) {
-                PlayNodeResult::NextNode(id) => {
-                    self.handle_update(self.get_node(id), delta_time, time, index, state)
+        mut logic_stack: &mut Vec<(Uuid, usize)>,
+    ) -> Result<AnimTreeUpdateResult, String> {
+        match node.execute(data, delta_time, &mut logic_stack) {
+            NodeResult::Node(id) => {
+                self.handle_update(self.get_node(id), data, delta_time, logic_stack)
+            }
+            NodeResult::Sprite(delay, index, atlas_index, current_node) => {
+                Ok(AnimTreeUpdateResult::Update(AnimTreeUpdate {
+                    time: delay,
+                    keyframe_index: index,
+                    atlas_index,
+                    current_node,
+                    logic_stack: Vec::new(),
+                }))
+            }
+            NodeResult::Err(str) => Err(str),
+            NodeResult::NoUpdate => Ok(AnimTreeUpdateResult::NoUpdate),
+            NodeResult::Finished => Ok(AnimTreeUpdateResult::Finished),
+            NodeResult::LogicNode(id, top) => {
+                let result = self.handle_update(self.get_node(id), data, delta_time, logic_stack);
+                match result {
+                    Ok(data) => match data {
+                        AnimTreeUpdateResult::NoUpdate | AnimTreeUpdateResult::Update(_) => {
+                            logic_stack.push(top);
+                            Ok(data)
+                        },
+                        AnimTreeUpdateResult::Finished => {
+                            logic_stack.push((top.0, top.1 + 1));
+                            Ok(data)
+                        }
+                    },
+                    Err(str) => Err(str),
                 }
-                PlayNodeResult::Sprite(result) => Ok(AnimTreeUpdate {
-                    time: result.delay,
-                    keyframe_index: result.keyframe_index,
-                    atlas_index: result.atlas_index,
-                })
-            },
-            AnimNode::MatchNode(node) => match node.execute(state) {
-                Ok(id) => self.handle_update(self.get_node(id), delta_time, time, index, state),
-                Err(msg) => Err(format!("Failed to update tree with message: \n{}", msg)),
-            },
-            AnimNode::ComponentNode(_) => todo!(),
+            }
         }
     }
 

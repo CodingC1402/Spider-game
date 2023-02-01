@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::Uuid};
 
 use crate::{prelude::{AnimState, AnimTreeWrap}, systems::update::anim_tree_update};
 
@@ -8,6 +8,9 @@ use crate::{prelude::{AnimState, AnimTreeWrap}, systems::update::anim_tree_updat
 pub struct AnimData<T> where T : AnimState {
     pub time: f32,
     pub index: usize,
+    pub current_node: Uuid,
+    /// Used to update logic nodes, used like a stack
+    pub logic_stack: Vec<(Uuid, usize)>,
     pub state: T
 }
 
