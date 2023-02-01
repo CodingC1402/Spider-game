@@ -1,17 +1,18 @@
 use std::ops::Not;
 
 use bevy::prelude::*;
-use bevy_inspector_egui::egui::Key;
-use bevy_rapier2d::prelude::{ExternalForce, ExternalImpulse, Velocity};
+
+use bevy_rapier2d::prelude::{ExternalImpulse, Velocity};
+
 use sprite_animation::prelude::AnimData;
 
 use crate::data::{
     physics::ComplexExternalForce,
-    player::{Player, PlayerInfo, PlayerJump, PlayerMovement},
+    player::{Player, PlayerInfo, PlayerMovement},
     web::Web,
 };
 
-use super::{PlayerControl, PlayerEvent, PlayerAnimState};
+use super::{PlayerAnimState, PlayerControl, PlayerEvent};
 
 pub fn handle_movement(
     input: Res<Input<KeyCode>>,

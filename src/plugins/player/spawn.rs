@@ -160,6 +160,5 @@ pub fn adjust_player_pos_to_level(
             };
             true
         }
-        _ => false,
     });
 }

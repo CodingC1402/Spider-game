@@ -6,6 +6,8 @@ use crate::prelude::AnimState;
 use bevy::prelude::warn;
 use bevy::utils::Uuid;
 
+use super::Node;
+
 #[derive(Default)]
 pub struct MatchNode<T>
 where
@@ -43,21 +45,38 @@ where
 
         instance
     }
+}
 
-    pub fn execute(&self, state: &T) -> Result<Uuid, String> {
-        self.pair
-            .get(state)
+impl<T> Node<T> for MatchNode<T>
+where
+    T: AnimState,
+{
+    fn execute(
+        &self,
+        data: &crate::prelude::AnimData<T>,
+        _: f32,
+        _: &mut Vec<(Uuid, usize)>,
+    ) -> super::NodeResult {
+        match self
+            .pair
+            .get(&data.state)
             .and_then(|id| Some(*id))
             .or_else(|| {
                 self.get_fallback().and_then(|id| {
                     warn!(
                         "Can't find node id for state {}, falling back to {}",
-                        state.to_string(),
+                        data.state.to_string(),
                         id
                     );
                     Some(id)
                 })
             })
-            .ok_or(format!("Can't find node id for state {} and failed to fallback to another node", state.to_string()))
+            .ok_or(format!(
+                "Can't find node id for state {} and failed to fallback to another node",
+                data.state.to_string()
+            )) {
+            Ok(value) => super::NodeResult::Node(value),
+            Err(str) => super::NodeResult::Err(str),
+        }
     }
 }

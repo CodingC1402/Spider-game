@@ -1,19 +1,45 @@
 use std::hash::Hash;
 
-use bevy::utils::Uuid;
+use bevy::{utils::Uuid};
 
-use crate::utils::extra_uuid::ToUuid;
+use crate::{utils::extra_uuid::ToUuid, prelude::{AnimData, AnimState}};
 
-use self::{play_node::PlayNode, match_node::MatchNode, component_node::ComponentNode};
+use self::{play_node::PlayNode, match_node::MatchNode, all_node::AllNode};
 
 pub mod play_node;
 pub mod component_node;
 pub mod match_node;
+pub mod all_node;
+pub mod any_node;
+
+pub trait Node<T> where T : AnimState {
+    fn execute(&self, data: &AnimData<T>, delta_time: f32, logic_stack: &mut Vec<(Uuid, usize)>) -> NodeResult;
+}
+pub enum NodeResult {
+    /// delay [f32], keyframe index [usize], atlas_index [usize], current_node [Uuid]
+    Sprite(f32, usize, usize, Uuid),
+    Node(Uuid),
+    /// node [Uuid], top to add back later ([Uuid], [usize])
+    LogicNode(Uuid, (Uuid, usize)),
+    /// Finish playing animation
+    Finished,
+    NoUpdate,
+    Err(String)
+}
 
 pub enum AnimNode<T> where T : Hash + Eq + Default {
     PlayNode(PlayNode),
     MatchNode(MatchNode<T>),
-    ComponentNode(ComponentNode)
+    AllNode(AllNode)
+}
+impl<T> Node<T> for AnimNode<T> where T: AnimState {
+    fn execute(&self, data: &AnimData<T>, delta_time: f32, logic_stack: &mut Vec<(Uuid, usize)>) -> NodeResult {
+        match self {
+            AnimNode::PlayNode(node) => node.execute(data, delta_time, logic_stack),
+            AnimNode::MatchNode(node) => node.execute(data, delta_time, logic_stack),
+            AnimNode::AllNode(node) => node.execute(data, delta_time, logic_stack),
+        }
+    }
 }
 
 impl<T> AnimNode<T> where T : Hash + Eq + Default {
@@ -21,7 +47,7 @@ impl<T> AnimNode<T> where T : Hash + Eq + Default {
         match self {
             AnimNode::PlayNode(inner) => inner.id,
             AnimNode::MatchNode(inner) => inner.id,
-            AnimNode::ComponentNode(inner) => inner.id,
+            AnimNode::AllNode(inner) => inner.id,
         }
     }
 
@@ -35,7 +61,7 @@ impl<T> AnimNode<T> where T : Hash + Eq + Default {
                 inner.id = inner.new_uuid();
                 inner.id
             },
-            AnimNode::ComponentNode(inner) => {
+            AnimNode::AllNode(inner) => {
                 inner.id = inner.new_uuid();
                 inner.id
             }
