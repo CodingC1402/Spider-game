@@ -10,6 +10,14 @@ pub struct SpriteKeyframe {
     sprite_index: usize,
     delay: Option<f32>, // If none then it will use the default for sprite animation
 }
+impl SpriteKeyframe {
+    pub fn new(index: usize) -> Self {
+        SpriteKeyframe {
+            sprite_index: index,
+            delay: None,
+        }
+    }
+}
 pub struct AnimKeyframe {
     sprite_index: usize,
     delay: f32,
@@ -21,6 +29,26 @@ pub struct SpriteAnimation {
     delay: f32,
 }
 impl SpriteAnimation {
+    pub fn new(fps: usize, indexes: &[usize]) -> Self {
+        let mut keyframes = Vec::<SpriteKeyframe>::new();
+        indexes
+            .iter()
+            .for_each(|i| keyframes.push(SpriteKeyframe::new(*i)));
+
+        Self {
+            keyframes,
+            delay: 1.0 / fps as f32,
+        }
+    }
+    pub fn new_range(fps: usize, start: usize, end: usize) -> Self {
+        let mut keyframes = Vec::<SpriteKeyframe>::new();
+        (start..=end).for_each(|i| keyframes.push(SpriteKeyframe::new(i)));
+
+        Self {
+            keyframes,
+            delay: 1.0 / fps as f32,
+        }
+    }
     pub fn len(&self) -> usize {
         self.keyframes.len()
     }
@@ -99,7 +127,16 @@ impl PlayNode {
                         })
                         .unwrap(),
                 ))
-                .unwrap_or(PlayNodeResult::NextNode(self.next))
+                .unwrap_or(
+                    self.next
+                        .is_nil()
+                        .then_some(PlayNodeResult::Sprite(SpriteResult {
+                            delay: time,
+                            keyframe_index: index,
+                            atlas_index: usize::MAX,
+                        }))
+                        .unwrap_or(PlayNodeResult::NextNode(self.next)),
+                )
         };
 
         let return_next_frame_values = || {
@@ -111,7 +148,11 @@ impl PlayNode {
 
         let return_old_frame = || {
             let new_time = time.sub(delta_time);
-            Some(PlayNodeResult::Sprite(SpriteResult { delay: new_time, keyframe_index: index, atlas_index: usize::MAX }))
+            Some(PlayNodeResult::Sprite(SpriteResult {
+                delay: new_time,
+                keyframe_index: index,
+                atlas_index: usize::MAX,
+            }))
         };
 
         let play_animation = || {

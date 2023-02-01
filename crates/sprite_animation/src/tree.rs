@@ -13,6 +13,7 @@ where
     T: AnimState,
 {
     fn get(&self) -> &AnimTree<T>;
+    fn get_mut(&mut self) -> &mut AnimTree<T>;
 }
 impl<T> Deref for dyn AnimTreeWrap<T>
 where
@@ -33,7 +34,7 @@ pub struct AnimTreeUpdate {
     pub atlas_index: usize,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct AnimTree<T>
 where
     T: AnimState,
@@ -164,6 +165,10 @@ where
     T: AnimState,
 {
     fn get(&self) -> &AnimTree<T> {
+        self
+    }
+
+    fn get_mut(&mut self) -> &mut AnimTree<T> {
         self
     }
 }

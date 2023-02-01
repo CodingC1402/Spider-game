@@ -32,8 +32,9 @@ where
         self.pair.get(&state)
     }
 
-    pub fn insert(&mut self, state: T, uuid: Uuid) {
+    pub fn insert(&mut self, state: T, uuid: Uuid) -> &mut Self {
         self.pair.insert(state, uuid);
+        self
     }
 
     pub fn new() -> MatchNode<T> {
