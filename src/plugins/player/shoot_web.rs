@@ -242,6 +242,21 @@ pub fn despawn_web(
     commands.entity(web_entity).despawn_recursive();
 }
 
+pub fn despawn_web_on_player_death(
+    mut evr_death: EventReader<PlayerEvent>,
+    mut evw_despawn_web: EventWriter<DespawnWebEvent>,
+) {
+    evr_death
+        .iter()
+        .any(|ev| match ev {
+            PlayerEvent::Died(_) => true,
+            _ => false,
+        })
+        .then(|| {
+            evw_despawn_web.send(DespawnWebEvent);
+        });
+}
+
 fn midpoint_and_angle_to_x(start: Vec2, end: Vec2) -> (Vec2, f32) {
     let midpoint = (start + end) / 2.0;
     let angle = (end - start).angle_between(Vec2::X);
