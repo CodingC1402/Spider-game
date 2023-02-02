@@ -1,19 +1,22 @@
+mod animation;
 mod jump;
 mod movement;
 mod shoot_web;
 pub mod spawn;
-mod animation;
 
 use bevy::prelude::*;
 
+use crate::data::player::Player;
+
 use self::{
+    animation::PlayerAnimationPlugin,
     jump::{check_if_grounded, check_if_head_bump, handle_jump},
     movement::{apply_accel_when_land, handle_movement, test_anim},
     shoot_web::{
         despawn_web, handle_shoot_web_input, handle_web_head_collision, setup_web_texture,
         shoot_web, update_web_string_and_pull_force, DespawnWebEvent, WebTexture,
     },
-    spawn::*, animation::PlayerAnimationPlugin,
+    spawn::*,
 };
 
 #[derive(Eq, Hash, PartialEq, Default)]
@@ -61,6 +64,8 @@ impl Default for PlayerControl {
 #[derive(Resource, Debug)]
 pub struct PlayerSwingDirection(f32);
 
+pub struct PlayerDebugEvent;
+
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -68,6 +73,7 @@ impl Plugin for PlayerPlugin {
             .insert_resource(WebTexture::default())
             .add_event::<PlayerEvent>()
             .add_event::<DespawnWebEvent>()
+            .add_event::<PlayerDebugEvent>()
             .add_startup_system(setup_web_texture)
             .add_startup_system(spawn_player_at_start)
             // movements
@@ -76,11 +82,9 @@ impl Plugin for PlayerPlugin {
             .add_system(handle_movement)
             .add_system(check_if_head_bump)
             .add_system(apply_accel_when_land)
-            
             // animation
             .add_system(test_anim)
             .add_plugin(PlayerAnimationPlugin)
-
             // shoot web
             .add_system(handle_shoot_web_input)
             .add_system(shoot_web)
@@ -89,7 +93,8 @@ impl Plugin for PlayerPlugin {
             .add_system(despawn_web)
             // testing
             .add_system(respawn_player)
-            .add_system(adjust_player_pos_to_level);
+            .add_system(adjust_player_pos_to_level)
+            .add_system(dbg_player_translation);
     }
 }
 
@@ -104,4 +109,14 @@ fn spawn_player_at_start(
         asset_server.as_ref(),
         texture_atlases.as_mut(),
     );
+}
+
+fn dbg_player_translation(
+    q_player: Query<&GlobalTransform, With<Player>>,
+    ev_dbg_translation: EventReader<PlayerDebugEvent>,
+) {
+    if !ev_dbg_translation.is_empty() {
+        let player_translation = q_player.single().translation();
+        warn!("player translation: {}", player_translation);
+    }
 }

@@ -11,6 +11,8 @@ use crate::{
     plugins::tilemap::{self, TilemapEvent},
 };
 
+use super::PlayerDebugEvent;
+
 const PLAYER_NAME: &str = "Player";
 const PLAYER_SIZE: Vec2 = Vec2::splat(24.0);
 const PLAYER_SPRITE_SIZE: Vec2 = Vec2::splat(32.0);
@@ -141,11 +143,13 @@ pub fn respawn_player(
     mut q_player: Query<&mut Transform, With<Player>>,
     input: Res<Input<KeyCode>>,
     level_selection: ResMut<LevelSelection>,
+    mut ev_dbg_translation: EventWriter<PlayerDebugEvent>,
 ) {
     input.just_pressed(KeyCode::Back).then(|| {
         match tilemap::current_level_index(&level_selection) {
             Some(index) => {
                 move_player_to_spawn_point(&mut q_player, index);
+                ev_dbg_translation.send(PlayerDebugEvent);
             }
             _ => (),
         }
@@ -155,10 +159,12 @@ pub fn respawn_player(
 pub fn adjust_player_pos_to_level(
     mut q_player: Query<&mut Transform, With<Player>>,
     mut evr_tilemap: EventReader<TilemapEvent>,
+    mut ev_dbg_translation: EventWriter<PlayerDebugEvent>,
 ) {
     evr_tilemap.iter().find(|ev| match ev {
         TilemapEvent::ChangedLevel(level) => {
             move_player_to_spawn_point(&mut q_player, *level);
+            ev_dbg_translation.send(PlayerDebugEvent);
             true
         }
     });

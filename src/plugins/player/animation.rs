@@ -1,10 +1,10 @@
+use super::PlayerAnimState;
 use bevy::prelude::*;
 use sprite_animation::prelude::{
     match_node::MatchNode,
     play_node::{PlayNode, SpriteAnimation},
     *,
 };
-use super::PlayerAnimState;
 
 pub const FPS: usize = 14;
 
@@ -87,6 +87,5 @@ impl Plugin for PlayerAnimationPlugin {
         app.insert_resource(Self::build_anim_tree())
             .insert_resource(Self::build_anim_tree())
             .add_plugin(AnimPlugin::<PlayerAnimTree, PlayerAnimState>::default());
-
     }
 }
