@@ -181,9 +181,6 @@ fn update_animation(
                     PlayerEvent::Died(_) => PlayerAnimState::None,
                     // PlayerEvent::Hurt(_) => PlayerAnimState::Hurt,
                     // PlayerEvent::Attacks(_) => PlayerAnimState::Hurt,
-                    PlayerEvent::Moving(_, _) => PlayerAnimState::Walking,
-                    PlayerEvent::Standing(_) => PlayerAnimState::Standing,
-                    PlayerEvent::ShotWeb => PlayerAnimState::None,
                 };
 
                 let anim_state = get_new_state(anim_data.as_ref(), anim_state)

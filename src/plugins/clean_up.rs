@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use bevy::{ecs::schedule::StateData, prelude::*};
-use iyes_loopless::prelude::{AppLooplessStateExt, ConditionHelpers, IntoConditionalSystem};
+use iyes_loopless::prelude::AppLooplessStateExt;
 use strum::IntoEnumIterator;
 
 use crate::data::clean_up::Persist;
@@ -33,7 +33,7 @@ where
     }
 }
 
-fn clean_up_system(mut commands: Commands, q: Query<Entity, Without<Persist>>) {
+fn clean_up_system(mut commands: Commands, q: Query<Entity, (Without<Persist>, Without<Parent>)>) {
     q.for_each(|e| {
         commands.entity(e).despawn_recursive();
     })

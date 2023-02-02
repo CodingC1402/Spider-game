@@ -6,8 +6,6 @@ mod shoot_web;
 
 use bevy::prelude::*;
 
-use sprite_animation::prelude::AnimPlugin;
-
 use crate::{GameState, utils::state_helper::{StateExtend}};
 
 use self::{
@@ -16,9 +14,7 @@ use self::{
     lifecycle::*,
     movement::{apply_accel_when_land, handle_movement},
     shoot_web::*,
-    spawn::*, animation::PlayerAnimationPlugin,
 };
-use self::animation::PlayerAnimTree;
 
 
 #[derive(Eq, Hash, PartialEq, Default, Clone, Copy, Debug)]
