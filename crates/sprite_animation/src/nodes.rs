@@ -1,4 +1,4 @@
-use std::hash::Hash;
+use std::{hash::Hash};
 
 use bevy::{utils::Uuid};
 
@@ -10,7 +10,6 @@ pub mod play_node;
 pub mod component_node;
 pub mod match_node;
 pub mod all_node;
-pub mod any_node;
 
 pub trait Node<T> where T : AnimState {
     fn execute(&self, data: &AnimData<T>, delta_time: f32, logic_stack: &mut Vec<(Uuid, usize)>) -> NodeResult;
@@ -30,8 +29,9 @@ pub enum NodeResult {
 pub enum AnimNode<T> where T : Hash + Eq + Default {
     PlayNode(PlayNode),
     MatchNode(MatchNode<T>),
-    AllNode(AllNode)
+    AllNode(AllNode),
 }
+
 impl<T> Node<T> for AnimNode<T> where T: AnimState {
     fn execute(&self, data: &AnimData<T>, delta_time: f32, logic_stack: &mut Vec<(Uuid, usize)>) -> NodeResult {
         match self {
