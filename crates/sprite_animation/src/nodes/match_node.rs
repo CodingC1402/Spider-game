@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::ops::Not;
 
 use crate::derive::*;
 use crate::prelude::AnimState;
-use bevy::prelude::warn;
 use bevy::utils::Uuid;
 
-use super::Node;
+use super::{Node, NodeResult};
 
 #[derive(Default)]
 pub struct MatchNode<T>
@@ -15,14 +15,7 @@ where
 {
     pub id: Uuid,
     pub pair: HashMap<T, Uuid>,
-}
-impl<T> MatchNode<T>
-where
-    T: AnimState,
-{
-    fn get_fallback(&self) -> Option<Uuid> {
-        self.pair.values().next().and_then(|id| Some(*id))
-    }
+    pub default: Uuid
 }
 
 impl<T> ToUuid for MatchNode<T> where T: Hash + Eq + Default {}
@@ -59,24 +52,12 @@ where
     ) -> super::NodeResult {
         match self
             .pair
-            .get(&data.state)
+            .get(&data.get_state())
             .and_then(|id| Some(*id))
-            .or_else(|| {
-                self.get_fallback().and_then(|id| {
-                    warn!(
-                        "Can't find node id for state {}, falling back to {}",
-                        data.state.to_string(),
-                        id
-                    );
-                    Some(id)
-                })
-            })
-            .ok_or(format!(
-                "Can't find node id for state {} and failed to fallback to another node",
-                data.state.to_string()
-            )) {
-            Ok(value) => super::NodeResult::Node(value),
-            Err(str) => super::NodeResult::Err(str),
+            .or_else(|| self.default.is_nil().not().then_some(self.default))
+            {
+            Some(value) => NodeResult::Node(value),
+            None => NodeResult::Finished,
         }
     }
 }

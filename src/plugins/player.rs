@@ -7,35 +7,40 @@ mod shoot_web;
 use bevy::prelude::*;
 
 use self::{
-    animation::PlayerAnimationPlugin,
+    animation::{update_animation, PlayerAnimationPlugin},
     jump::{check_if_grounded, check_if_head_bump, handle_jump},
     lifecycle::*,
-    movement::{apply_accel_when_land, handle_movement, test_anim},
+    movement::{apply_accel_when_land, handle_movement},
     shoot_web::{
         despawn_web, handle_shoot_web_input, handle_web_head_collision, setup_web_texture,
         shoot_web, update_web_string_and_pull_force, DespawnWebEvent, WebTexture,
     },
 };
 
-#[derive(Eq, Hash, PartialEq, Default)]
+#[derive(Eq, Hash, PartialEq, Default, Clone, Copy, Debug)]
 pub enum PlayerAnimState {
     #[default]
+    Standing,
     Idle,
     Walking,
     MidAir,
-    Ascending,
-    Descending,
+    Jumping,
+    Landing,
+    Hurt,
+    None,
 }
 
+#[derive(Debug)]
 pub enum PlayerEvent {
     Airborne(Entity),
     Jumped(Entity),
     Grounded(Entity),
     Died(Entity),
+    Hurt(Entity),
     Attacks(Entity),
-    Moving(Entity),
-    Idle(Entity),
-    ChangeDirection(Entity),
+    /// Axis [f32], Player [Entity]
+    Moving(f32, Entity),
+    Standing(Entity),
     ShotWeb,
 }
 
@@ -78,7 +83,7 @@ impl Plugin for PlayerPlugin {
             .add_system(check_if_head_bump)
             .add_system(apply_accel_when_land)
             // animation
-            .add_system(test_anim)
+            .add_system(update_animation)
             .add_plugin(PlayerAnimationPlugin)
             // shoot web
             .add_system(handle_shoot_web_input)

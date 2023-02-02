@@ -45,7 +45,6 @@ pub struct RigidBodyBundle {
 #[derive(Clone, Debug, Default, Bundle)]
 pub struct ColliderBundle {
     pub collider: Collider,
-    pub density: ColliderMassProperties,
     pub friction: Friction,
     pub collision_groups: CollisionGroups,
     pub active_events: ActiveEvents,

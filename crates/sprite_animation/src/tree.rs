@@ -92,7 +92,7 @@ where
             NodeResult::Err(str) => Err(str),
             NodeResult::NoUpdate => Ok(AnimTreeUpdateResult::NoUpdate),
             NodeResult::Finished => Ok(AnimTreeUpdateResult::Finished),
-            NodeResult::LogicNode(id, top) => {
+            NodeResult::LogicNode(id, top,) => {
                 let result = self.handle_update(self.get_node(id), data, delta_time, logic_stack);
                 match result {
                     Ok(data) => match data {
@@ -124,7 +124,7 @@ where
 
     pub fn insert_node(&mut self, mut node: AnimNode<T>) -> Result<&mut Self, String> {
         let id = node.get_id();
-        id.is_nil().then_some(node.set_default_id());
+        id.is_nil().then(|| node.set_default_id());
         self.nodes
             .contains_key(&id)
             .then_some(Err(format!(
@@ -137,12 +137,16 @@ where
             })
     }
 
+    pub fn insert_unwrap(&mut self, node: AnimNode<T>) -> &mut Self {
+        self.insert_node(node).unwrap()
+    }
+
     pub fn new(mut start_node: AnimNode<T>) -> Self {
         let mut nodes = HashMap::new();
         start_node
             .get_id()
             .is_nil()
-            .then_some(start_node.set_default_id());
+            .then(|| start_node.set_default_id());
         nodes.insert(start_node.get_id(), start_node);
 
         let mut instance = Self {
