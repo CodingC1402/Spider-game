@@ -178,6 +178,9 @@ pub fn update_animation(
                     PlayerAnimState::MidAir => {
                         state.eq(&PlayerAnimState::Jumping).not().then_some(anim_state)
                     },
+                    PlayerAnimState::Walking => {
+                        (state.eq(&PlayerAnimState::MidAir) || state.eq(&PlayerAnimState::Jumping) || state.eq(&PlayerAnimState::Hurt)).not().then_some(anim_state)
+                    }
                     _ => Some(anim_state),
                 })
                 .unwrap_or(*anim_data.get_state());
@@ -200,9 +203,9 @@ pub fn update_animation(
                 PlayerAnimState::Hurt | PlayerAnimState::Jumping | PlayerAnimState::MidAir => {},
                 _ => {
                     anim_data.set_state(PlayerAnimState::Walking);
-                    sprite.flip_x = movement_data.axis.gt(&0.0);
                 }
             };
+            sprite.flip_x = movement_data.axis.gt(&0.0);
         });
     });
 }

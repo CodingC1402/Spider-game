@@ -154,7 +154,7 @@ pub fn spawn_player(
                     ..Default::default()
                 },
                 player_collider: PlayerColliderBundle {
-                    collider: Collider::cuboid(1.3, 4.0),
+                    collider: Collider::cuboid(1.3, 2.0),
                     ..default()
                 },
                 name: Name::from("Foot long"),
