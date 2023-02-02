@@ -6,13 +6,20 @@ mod shoot_web;
 
 use bevy::prelude::*;
 
+use sprite_animation::prelude::AnimPlugin;
+
+use crate::{GameState, utils::state_helper::{StateExtend}};
+
 use self::{
-    animation::{update_animation, PlayerAnimationPlugin},
+    animation::{PlayerAnimationPlugin},
     jump::{check_if_grounded, check_if_head_bump, handle_jump},
     lifecycle::*,
     movement::{apply_accel_when_land, handle_movement},
     shoot_web::*,
+    spawn::*, animation::PlayerAnimationPlugin,
 };
+use self::animation::PlayerAnimTree;
+
 
 #[derive(Eq, Hash, PartialEq, Default, Clone, Copy, Debug)]
 pub enum PlayerAnimState {
@@ -33,8 +40,8 @@ pub enum PlayerEvent {
     Jumped(Entity),
     Grounded(Entity),
     Died(Entity),
-    Hurt(Entity),
-    Attacks(Entity),
+    // Hurt(Entity),
+    // Attacks(Entity),
     /// Axis [f32], Player [Entity]
     Moving(f32, Entity),
     Standing(Entity),
@@ -43,7 +50,7 @@ pub enum PlayerEvent {
 
 #[derive(Resource, Debug)]
 pub struct PlayerControl {
-    attack: KeyCode,
+    // attack: KeyCode,
 
     jump: KeyCode,
 
@@ -53,7 +60,7 @@ pub struct PlayerControl {
 impl Default for PlayerControl {
     fn default() -> Self {
         Self {
-            attack: KeyCode::C,
+            // attack: KeyCode::C,
             jump: KeyCode::Space,
             left: KeyCode::A,
             right: KeyCode::D,
@@ -64,37 +71,47 @@ impl Default for PlayerControl {
 #[derive(Resource, Debug)]
 pub struct PlayerSwingDirection(f32);
 
-pub struct PlayerPlugin;
+#[derive(Resource)]
+pub struct PlayerPlugin {
+    run_in: Option<GameState>
+}
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(PlayerControl::default())
             .insert_resource(WebTexture::default())
             .add_event::<PlayerEvent>()
             .add_event::<DespawnWebEvent>()
-            .add_startup_system(setup_web_texture)
-            .add_startup_system(spawn_player_at_start)
+            .add_plugin(PlayerAnimationPlugin::new(self.run_in))
+            .add_startup_system_if_state(self.run_in, setup_web_texture)
+            .add_startup_system_if_state(self.run_in, spawn_player_at_start)
+
             // movements
-            .add_system(handle_jump)
-            .add_system(check_if_grounded)
-            .add_system(handle_movement)
-            .add_system(check_if_head_bump)
-            .add_system(apply_accel_when_land)
-            // animation
-            .add_plugin(PlayerAnimationPlugin)
-            .add_system(update_animation)
+            .add_system_run_if(self.run_in, handle_jump)
+            .add_system_run_if(self.run_in, check_if_grounded)
+            .add_system_run_if(self.run_in, handle_movement)
+            .add_system_run_if(self.run_in, check_if_head_bump)
+            .add_system_run_if(self.run_in, apply_accel_when_land)
+
             // shoot web
-            .add_system(handle_shoot_web_input)
-            .add_system(shoot_web)
-            .add_system(handle_web_head_collision)
-            .add_system(update_web_string_and_pull_force)
-            .add_system(despawn_web)
-            .add_system(despawn_web_on_player_death)
+            .add_system_run_if(self.run_in, handle_shoot_web_input)
+            .add_system_run_if(self.run_in, shoot_web)
+            .add_system_run_if(self.run_in, handle_web_head_collision)
+            .add_system_run_if(self.run_in, update_web_string_and_pull_force)
+            .add_system_run_if(self.run_in, despawn_web)
+            .add_system_run_if(self.run_in, despawn_web_on_player_death)
+
             // death
-            .add_system(kill_player)
-            .add_system(respawn_player_on_death)
-            // testing
-            .add_system(handle_player_respawn_input)
-            .add_system(adjust_player_pos_to_level);
+            .add_system_run_if(self.run_in, kill_player)
+            .add_system_run_if(self.run_in, respawn_player_on_death);
+
+            // Add test in the test plugin for easy clean up
+    }
+}
+impl PlayerPlugin {
+    pub fn new(run_in: Option<GameState>) -> Self {
+        Self {
+            run_in
+        }
     }
 }
 

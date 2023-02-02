@@ -1,4 +1,4 @@
-use crate::data::tilemap::*;
+use crate::{data::tilemap::*, GameState, utils::state_helper::StateExtend};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 
@@ -21,7 +21,14 @@ pub enum TilemapEvent {
     ChangedLevel(usize),
 }
 
-pub struct TilemapPlugin;
+pub struct TilemapPlugin {
+    run_in: Option<GameState>
+}
+impl TilemapPlugin {
+    pub fn new(state: Option<GameState>) -> Self {
+        Self {run_in: state}
+    }
+}
 
 impl Plugin for TilemapPlugin {
     fn build(&self, app: &mut App) {
@@ -44,11 +51,11 @@ impl Plugin for TilemapPlugin {
             .register_ldtk_int_cell_for_layer::<TrapTileBundle>(SPIKES_LAYER, SPIKE_DOWN)
             .register_ldtk_int_cell_for_layer::<TrapTileBundle>(SPIKES_LAYER, SPIKE_LEFT)
             .register_ldtk_int_cell_for_layer::<TrapTileBundle>(SPIKES_LAYER, SPIKE_RIGHT)
-            .add_startup_system(spawn::spawn_tilemap)
-            .add_system(spawn::spawn_tile_colliders)
-            .add_system(spawn::camera_fit_inside_current_level)
-            .add_system(spawn::update_level_selection)
-            .add_system(change_level);
+            .add_startup_system_if_state(self.run_in, spawn::spawn_tilemap)
+            .add_system_run_if(self.run_in, spawn::spawn_tile_colliders)
+            .add_system_run_if(self.run_in, spawn::camera_fit_inside_current_level)
+            .add_system_run_if(self.run_in, spawn::update_level_selection)
+            .add_system_run_if(self.run_in, change_level);
     }
 }
 

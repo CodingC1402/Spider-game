@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
-use bevy::{prelude::*, utils::Uuid};
+use bevy::{prelude::*, utils::Uuid, ecs::schedule::StateData};
+use iyes_loopless::prelude::IntoConditionalSystem;
 
 use crate::{
     prelude::{AnimState, AnimTreeWrap},
@@ -44,21 +45,41 @@ where
     }
 }
 
-#[derive(Default)]
-pub struct AnimPlugin<R, T>
+pub struct AnimPlugin<R, T, S>
 where
     R: AnimTreeWrap<T>,
     T: AnimState,
+    S: StateData
 {
     phantom_t: PhantomData<T>,
     phantom_r: PhantomData<R>,
+    run_in: Option<S>
 }
-impl<R, T> Plugin for AnimPlugin<R, T>
+impl<R, T, S> AnimPlugin<R, T, S>
 where
     R: AnimTreeWrap<T>,
     T: AnimState,
+    S: StateData
+{
+    pub fn new(run_in: Option<S>) -> Self {
+        Self {
+            run_in,
+            phantom_r: PhantomData,
+            phantom_t: PhantomData
+        }
+    }
+}
+impl<R, T, S> Plugin for AnimPlugin<R, T, S>
+where
+    R: AnimTreeWrap<T>,
+    T: AnimState,
+    S: StateData
 {
     fn build(&self, app: &mut App) {
-        app.add_system(anim_tree_update::<R, T>);
+        app
+        .add_system(match self.run_in.clone() {
+            Some(x) => anim_tree_update::<R, T>.run_in_state(x),
+            None => anim_tree_update::<R, T>.into_conditional(),
+        });
     }
 }

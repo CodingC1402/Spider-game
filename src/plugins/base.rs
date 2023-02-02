@@ -1,3 +1,5 @@
+use crate::data::clean_up::Persist;
+
 use super::display::DisplaySettings;
 use bevy::{
     prelude::*,
@@ -36,5 +38,6 @@ impl Plugin for BasePlugin {
 fn setup(mut commands: Commands) {
     commands
         .spawn(Camera2dBundle::default())
+        .insert(Persist)
         .insert(Name::from("Camera"));
 }

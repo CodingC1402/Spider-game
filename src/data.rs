@@ -4,6 +4,7 @@ pub mod player;
 pub mod tilemap;
 pub mod physics;
 pub mod web;
+pub mod clean_up;
 
 pub struct ComponentsPlugin;
 impl Plugin for ComponentsPlugin {

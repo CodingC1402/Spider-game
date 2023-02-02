@@ -120,11 +120,11 @@ pub fn spawn_player(
 
             builder
                 .spawn(TransformBundle {
-                    local: Transform::from_xyz(0.0, -3.8, 0.0),
+                    local: Transform::from_xyz(0.0, -3.3, 0.0),
                     ..Default::default()
                 })
                 .insert(ColliderBundle {
-                    collider: Collider::cuboid(3.5, 2.4),
+                    collider: Collider::cuboid(3.5, 2.2),
                     friction: Friction {
                         coefficient: 0.2,
                         combine_rule: CoefficientCombineRule::Min,

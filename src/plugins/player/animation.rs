@@ -1,6 +1,6 @@
 use std::ops::Not;
 
-use crate::data::player::PlayerMovement;
+use crate::{data::player::PlayerMovement, GameState, utils::state_helper::StateExtend};
 
 use super::{PlayerAnimState, PlayerEvent};
 use bevy::prelude::*;
@@ -39,7 +39,7 @@ fn create_walking_anim() -> AnimNode<PlayerAnimState> {
 }
 fn create_jump_anim() -> AnimNode<PlayerAnimState> {
     AnimNode::PlayNode(PlayNode::new(
-        1.,
+        2.,
         false,
         true,
         SpriteAnimation::new_range(FPS, 18, 18),
@@ -88,62 +88,70 @@ impl AnimTreeWrap<PlayerAnimState> for PlayerAnimTree {
     }
 }
 
-pub struct PlayerAnimationPlugin;
+pub struct PlayerAnimationPlugin {
+    run_in: Option<GameState>,
+}
 impl PlayerAnimationPlugin {
-    pub fn build_anim_tree() -> PlayerAnimTree {
-        let mut start_node: MatchNode<PlayerAnimState> = MatchNode::new();
-        let idle_node = create_idle_anim();
-        let walking_node = create_walking_anim();
-        let jump_anim_node = create_jump_anim();
-        let float_node = create_floating_anim();
-        let land_anim_node = create_land_anim();
-        let stand_node = create_standing_anim();
-
-        let mut jump_node = AllNode::new();
-        jump_node.nodes = vec![jump_anim_node.get_id(), float_node.get_id()];
-        jump_node.is_loop = false;
-
-        let mut land_node = AllNode::new();
-        land_node.nodes = vec![land_anim_node.get_id(), stand_node.get_id()];
-        land_node.is_loop = false;
-
-        start_node
-            .insert(PlayerAnimState::Idle, idle_node.get_id())
-            .insert(PlayerAnimState::Walking, walking_node.get_id())
-            .insert(PlayerAnimState::Jumping, jump_node.get_id())
-            .insert(PlayerAnimState::MidAir, float_node.get_id())
-            .insert(PlayerAnimState::Landing, land_node.get_id())
-            .insert(PlayerAnimState::Standing, stand_node.get_id());
-
-        let mut tree = PlayerAnimTree(AnimTree::<PlayerAnimState>::new(AnimNode::MatchNode(
-            start_node,
-        )));
-        tree.get_mut()
-            .insert_unwrap(idle_node)
-            .insert_unwrap(walking_node)
-            .insert_unwrap(AnimNode::AllNode(jump_node))
-            .insert_unwrap(float_node)
-            .insert_unwrap(AnimNode::AllNode(land_node))
-            .insert_unwrap(jump_anim_node)
-            .insert_unwrap(land_anim_node)
-            .insert_unwrap(stand_node);
-
-        tree
+    pub fn new(state: Option<GameState>) -> Self {
+        Self {
+            run_in: state
+        }
     }
 }
 
 impl Plugin for PlayerAnimationPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Self::build_anim_tree())
-            .insert_resource(Self::build_anim_tree())
-            .add_plugin(AnimPlugin::<PlayerAnimTree, PlayerAnimState>::default());
+        app.insert_resource(build_anim_tree())
+            .add_plugin(AnimPlugin::<PlayerAnimTree, PlayerAnimState, GameState>::new(self.run_in))
+            .add_system_run_if(self.run_in, update_animation);
     }
+}
+
+fn build_anim_tree() -> PlayerAnimTree {
+    let mut start_node: MatchNode<PlayerAnimState> = MatchNode::new();
+    let idle_node = create_idle_anim();
+    let walking_node = create_walking_anim();
+    let jump_anim_node = create_jump_anim();
+    let float_node = create_floating_anim();
+    let land_anim_node = create_land_anim();
+    let stand_node = create_standing_anim();
+
+    let mut jump_node = AllNode::new();
+    jump_node.nodes = vec![jump_anim_node.get_id(), float_node.get_id()];
+    jump_node.is_loop = false;
+
+    let mut land_node = AllNode::new();
+    land_node.nodes = vec![land_anim_node.get_id(), stand_node.get_id()];
+    land_node.is_loop = false;
+
+    start_node
+        .insert(PlayerAnimState::Idle, idle_node.get_id())
+        .insert(PlayerAnimState::Walking, walking_node.get_id())
+        .insert(PlayerAnimState::Jumping, jump_node.get_id())
+        .insert(PlayerAnimState::MidAir, float_node.get_id())
+        .insert(PlayerAnimState::Landing, land_node.get_id())
+        .insert(PlayerAnimState::Standing, stand_node.get_id());
+
+    let mut tree = PlayerAnimTree(AnimTree::<PlayerAnimState>::new(AnimNode::MatchNode(
+        start_node,
+    )));
+    tree.get_mut()
+        .insert_unwrap(idle_node)
+        .insert_unwrap(walking_node)
+        .insert_unwrap(AnimNode::AllNode(jump_node))
+        .insert_unwrap(float_node)
+        .insert_unwrap(AnimNode::AllNode(land_node))
+        .insert_unwrap(jump_anim_node)
+        .insert_unwrap(land_anim_node)
+        .insert_unwrap(stand_node);
+
+    tree
 }
 
 const IDLE_TIME: f32 = 1.5;
 const HURT_TIME: f32 = 0.5;
 
-pub fn update_animation(
+fn update_animation(
     mut q: Query<(
         &mut AnimData<PlayerAnimState>,
         &PlayerMovement,
@@ -167,12 +175,15 @@ pub fn update_animation(
                     PlayerEvent::Airborne(_) => PlayerAnimState::MidAir,
                     PlayerEvent::Jumped(_) => PlayerAnimState::Jumping,
                     PlayerEvent::Grounded(_) => PlayerAnimState::Landing,
-                    PlayerEvent::Hurt(_) => PlayerAnimState::Hurt,
-                    PlayerEvent::Attacks(_) => PlayerAnimState::Hurt,
                     PlayerEvent::Moving(_, _) => PlayerAnimState::Walking,
                     PlayerEvent::Standing(_) => PlayerAnimState::Standing,
                     PlayerEvent::ShotWeb => PlayerAnimState::None,
                     PlayerEvent::Died(_) => PlayerAnimState::None,
+                    // PlayerEvent::Hurt(_) => PlayerAnimState::Hurt,
+                    // PlayerEvent::Attacks(_) => PlayerAnimState::Hurt,
+                    PlayerEvent::Moving(_, _) => PlayerAnimState::Walking,
+                    PlayerEvent::Standing(_) => PlayerAnimState::Standing,
+                    PlayerEvent::ShotWeb => PlayerAnimState::None,
                 };
 
                 let anim_state = get_new_state(anim_data.as_ref(), anim_state)
