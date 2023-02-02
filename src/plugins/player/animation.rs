@@ -144,68 +144,78 @@ const IDLE_TIME: f32 = 1.5;
 const HURT_TIME: f32 = 0.5;
 
 pub fn update_animation(
-    mut q: Query<(&mut AnimData<PlayerAnimState>, &PlayerMovement, &mut TextureAtlasSprite)>,
+    mut q: Query<(
+        &mut AnimData<PlayerAnimState>,
+        &PlayerMovement,
+        &mut TextureAtlasSprite,
+    )>,
     mut e_reader: EventReader<PlayerEvent>,
 ) {
-    q.iter_mut().for_each(|(mut anim_data, movement_data, mut sprite)| {
-        let get_new_state = |data: &AnimData<PlayerAnimState>, new_state: PlayerAnimState| {
-            data.get_state()
-                .eq(&PlayerAnimState::Hurt)
-                .then_some(data.get_state_time().ge(&HURT_TIME))
-                .unwrap_or(true)
-                .then_some(new_state)
-        };
-
-        e_reader.iter().for_each(|e| {
-            let state = anim_data.get_state();
-            let anim_state = match e {
-                PlayerEvent::Airborne(_) => PlayerAnimState::MidAir,
-                PlayerEvent::Jumped(_) => PlayerAnimState::Jumping,
-                PlayerEvent::Grounded(_) => PlayerAnimState::Landing,
-                PlayerEvent::Hurt(_) => PlayerAnimState::Hurt,
-                PlayerEvent::Attacks(_) => PlayerAnimState::Hurt,
-                PlayerEvent::Moving(_, _) => PlayerAnimState::Walking,
-                PlayerEvent::Standing(_) => PlayerAnimState::Standing,
-                PlayerEvent::ShotWeb => PlayerAnimState::None,
+    q.iter_mut()
+        .for_each(|(mut anim_data, movement_data, mut sprite)| {
+            let get_new_state = |data: &AnimData<PlayerAnimState>, new_state: PlayerAnimState| {
+                data.get_state()
+                    .eq(&PlayerAnimState::Hurt)
+                    .then_some(data.get_state_time().ge(&HURT_TIME))
+                    .unwrap_or(true)
+                    .then_some(new_state)
             };
 
-            let anim_state = get_new_state(anim_data.as_ref(), anim_state)
-                .and_then(|anim_state| match anim_state {
-                    PlayerAnimState::None => None,
-                    PlayerAnimState::Standing => {
-                        state.eq(&PlayerAnimState::Idle).not().then_some(anim_state)
-                    },
-                    PlayerAnimState::MidAir => {
-                        state.eq(&PlayerAnimState::Jumping).not().then_some(anim_state)
-                    },
-                    PlayerAnimState::Walking => {
-                        (state.eq(&PlayerAnimState::MidAir) || state.eq(&PlayerAnimState::Jumping) || state.eq(&PlayerAnimState::Hurt)).not().then_some(anim_state)
-                    }
-                    _ => Some(anim_state),
-                })
-                .unwrap_or(*anim_data.get_state());
+            e_reader.iter().for_each(|e| {
+                let state = anim_data.get_state();
+                let anim_state = match e {
+                    PlayerEvent::Airborne(_) => PlayerAnimState::MidAir,
+                    PlayerEvent::Jumped(_) => PlayerAnimState::Jumping,
+                    PlayerEvent::Grounded(_) => PlayerAnimState::Landing,
+                    PlayerEvent::Hurt(_) => PlayerAnimState::Hurt,
+                    PlayerEvent::Attacks(_) => PlayerAnimState::Hurt,
+                    PlayerEvent::Moving(_, _) => PlayerAnimState::Walking,
+                    PlayerEvent::Standing(_) => PlayerAnimState::Standing,
+                    PlayerEvent::ShotWeb => PlayerAnimState::None,
+                    PlayerEvent::Died(_) => PlayerAnimState::None,
+                };
 
-            anim_data.set_state(anim_state);
-        });
+                let anim_state = get_new_state(anim_data.as_ref(), anim_state)
+                    .and_then(|anim_state| match anim_state {
+                        PlayerAnimState::None => None,
+                        PlayerAnimState::Standing => {
+                            state.eq(&PlayerAnimState::Idle).not().then_some(anim_state)
+                        }
+                        PlayerAnimState::MidAir => state
+                            .eq(&PlayerAnimState::Jumping)
+                            .not()
+                            .then_some(anim_state),
+                        PlayerAnimState::Walking => (state.eq(&PlayerAnimState::MidAir)
+                            || state.eq(&PlayerAnimState::Jumping)
+                            || state.eq(&PlayerAnimState::Hurt))
+                        .not()
+                        .then_some(anim_state),
+                        _ => Some(anim_state),
+                    })
+                    .unwrap_or(*anim_data.get_state());
 
-        // Continuous update
-        match anim_data.get_state() {
-            PlayerAnimState::Standing | PlayerAnimState::Landing => {
-                anim_data.get_state_time()
-                    .ge(&IDLE_TIME)
-                    .then(|| anim_data.set_state(PlayerAnimState::Idle));
-            }
-            _ => (),
-        };
+                anim_data.set_state(anim_state);
+            });
 
-        (movement_data.axis != 0.0).then(|| {
+            // Continuous update
             match anim_data.get_state() {
-                PlayerAnimState::Hurt | PlayerAnimState::Jumping | PlayerAnimState::MidAir => {},
-                _ => {
-                    anim_data.set_state(PlayerAnimState::Walking);
+                PlayerAnimState::Standing | PlayerAnimState::Landing => {
+                    anim_data
+                        .get_state_time()
+                        .ge(&IDLE_TIME)
+                        .then(|| anim_data.set_state(PlayerAnimState::Idle));
                 }
+                _ => (),
             };
-            sprite.flip_x = movement_data.axis.gt(&0.0);
+
+            (movement_data.axis != 0.0).then(|| {
+                match anim_data.get_state() {
+                    PlayerAnimState::Hurt | PlayerAnimState::Jumping | PlayerAnimState::MidAir => {}
+                    _ => {
+                        anim_data.set_state(PlayerAnimState::Walking);
+                    }
+                };
+                sprite.flip_x = movement_data.axis.gt(&0.0);
+            });
         });
-    });
 }

@@ -17,7 +17,7 @@ use super::PlayerEvent;
 const WEB_SPRITE_PATH: &str = "web.png";
 const WEB_SHOOT_SPEED: f32 = 150.0;
 const WEB_Z: f32 = 100.0;
-const WEB_PULL_FORCE_SCALE: f32 = 90.0;
+const WEB_PULL_FORCE_SCALE: f32 = 110.0;
 
 #[derive(Resource, Default)]
 pub struct WebTexture(Handle<Image>);
@@ -188,8 +188,12 @@ pub fn handle_web_head_collision(
     for collision in evr_collisions.iter() {
         if let CollisionEvent::Started(entity_one, entity_two, _) = collision {
             let other_entity = (web_head == *entity_one)
-                .then(|| *entity_two)
-                .unwrap_or_else(|| *entity_one);
+                .then_some(*entity_two)
+                .or_else(|| (web_head == *entity_two).then_some(*entity_one));
+            if let None = other_entity {
+                continue;
+            }
+            let other_entity = other_entity.unwrap();
 
             q_web_stickable
                 .get(other_entity)
@@ -236,6 +240,21 @@ pub fn despawn_web(
     }
     movement.airborne_acceleration = PlayerMovement::NORM_AIR_ACCEL;
     commands.entity(web_entity).despawn_recursive();
+}
+
+pub fn despawn_web_on_player_death(
+    mut evr_death: EventReader<PlayerEvent>,
+    mut evw_despawn_web: EventWriter<DespawnWebEvent>,
+) {
+    evr_death
+        .iter()
+        .any(|ev| match ev {
+            PlayerEvent::Died(_) => true,
+            _ => false,
+        })
+        .then(|| {
+            evw_despawn_web.send(DespawnWebEvent);
+        });
 }
 
 fn midpoint_and_angle_to_x(start: Vec2, end: Vec2) -> (Vec2, f32) {

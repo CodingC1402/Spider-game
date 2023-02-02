@@ -3,13 +3,16 @@ use std::collections::HashMap;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::LevelSelection;
 use bevy_rapier2d::prelude::{
-    Ccd, CoefficientCombineRule, Collider, CollisionGroups, Friction, GravityScale, LockedAxes, ColliderMassProperties,
+    ActiveEvents, Ccd, CoefficientCombineRule, Collider, ColliderMassProperties, CollisionEvent,
+    CollisionGroups, Friction, GravityScale, LockedAxes,
 };
 
 use crate::{
-    data::{physics::*, player::*},
+    data::{physics::*, player::*, tilemap::Trap},
     plugins::tilemap::{self, TilemapEvent},
 };
+
+use super::PlayerEvent;
 
 const PLAYER_NAME: &str = "Player";
 const PLAYER_SIZE: Vec2 = Vec2::splat(24.0);
@@ -78,42 +81,42 @@ pub fn spawn_player(
         .insert(Name::from("Player"))
         .with_children(|builder| {
             builder
-            .spawn(TransformBundle {
-                local: Transform::from_xyz(-3.2, -3.8, 0.0),
-                ..Default::default()
-            })
-            .insert(ColliderBundle {
-                collider: Collider::capsule_y(0.2, 1.0),
-                friction: Friction {
-                    coefficient: 0.0,
-                    combine_rule: CoefficientCombineRule::Min,
-                },
-                collision_groups: CollisionGroups {
-                    memberships: GameCollisionGroups::PLAYER,
-                    filters: GameCollisionGroups::PLAYER.filter_group(),
-                },
-                ..Default::default()
-            })
-            .insert(Name::from("Padding"));
+                .spawn(TransformBundle {
+                    local: Transform::from_xyz(-3.2, -3.8, 0.0),
+                    ..Default::default()
+                })
+                .insert(ColliderBundle {
+                    collider: Collider::capsule_y(0.2, 1.0),
+                    friction: Friction {
+                        coefficient: 0.0,
+                        combine_rule: CoefficientCombineRule::Min,
+                    },
+                    collision_groups: CollisionGroups {
+                        memberships: GameCollisionGroups::PLAYER,
+                        filters: GameCollisionGroups::PLAYER.filter_group(),
+                    },
+                    ..Default::default()
+                })
+                .insert(Name::from("Padding"));
 
             builder
-            .spawn(TransformBundle {
-                local: Transform::from_xyz(3.2, -3.8, 0.0),
-                ..Default::default()
-            })
-            .insert(ColliderBundle {
-                collider: Collider::capsule_y(0.2, 1.0),
-                friction: Friction {
-                    coefficient: 0.0,
-                    combine_rule: CoefficientCombineRule::Min,
-                },
-                collision_groups: CollisionGroups {
-                    memberships: GameCollisionGroups::PLAYER,
-                    filters: GameCollisionGroups::PLAYER.filter_group(),
-                },
-                ..Default::default()
-            })
-            .insert(Name::from("Padding"));
+                .spawn(TransformBundle {
+                    local: Transform::from_xyz(3.2, -3.8, 0.0),
+                    ..Default::default()
+                })
+                .insert(ColliderBundle {
+                    collider: Collider::capsule_y(0.2, 1.0),
+                    friction: Friction {
+                        coefficient: 0.0,
+                        combine_rule: CoefficientCombineRule::Min,
+                    },
+                    collision_groups: CollisionGroups {
+                        memberships: GameCollisionGroups::PLAYER,
+                        filters: GameCollisionGroups::PLAYER.filter_group(),
+                    },
+                    ..Default::default()
+                })
+                .insert(Name::from("Padding"));
 
             builder
                 .spawn(TransformBundle {
@@ -130,6 +133,7 @@ pub fn spawn_player(
                         memberships: GameCollisionGroups::PLAYER,
                         filters: GameCollisionGroups::PLAYER.filter_group(),
                     },
+                    active_events: ActiveEvents::COLLISION_EVENTS,
                     ..Default::default()
                 })
                 .insert(ColliderMassProperties::Mass(1.0))
@@ -177,20 +181,76 @@ pub fn spawn_player(
         .id()
 }
 
+pub fn kill_player(
+    q_player: Query<Entity, With<Player>>,
+    q_trap: Query<Entity, With<Trap>>,
+    q_parents: Query<&Parent>,
+    mut evr_collisions: EventReader<CollisionEvent>,
+    mut evw_death: EventWriter<PlayerEvent>,
+) {
+    if evr_collisions.is_empty() {
+        return;
+    }
+    let player = q_player.single();
+    let player_is_parent = |entity: &Entity| {
+        if let Ok(parent) = q_parents.get(*entity) {
+            return parent.get() == player;
+        } else {
+            false
+        }
+    };
+    for collision in evr_collisions.iter() {
+        if let CollisionEvent::Started(entity_one, entity_two, _) = collision {
+            let other_entity = player_is_parent(entity_one)
+                .then_some(*entity_two)
+                .or_else(|| player_is_parent(entity_one).then_some(*entity_one));
+            if let None = other_entity {
+                return;
+            }
+            let other_entity = other_entity.unwrap();
+            q_trap.get(other_entity).is_ok().then(|| {
+                evw_death.send(PlayerEvent::Died(player));
+                return;
+            });
+        }
+    }
+}
+
+pub fn respawn_player_on_death(
+    mut q_player: Query<&mut Transform, With<Player>>,
+    level_selection: Res<LevelSelection>,
+    mut evr_death: EventReader<PlayerEvent>,
+) {
+    evr_death.iter().find(|ev| match ev {
+        PlayerEvent::Died(_) => {
+            respawn_player(&mut q_player, &*level_selection);
+            true
+        }
+        _ => false,
+    });
+}
+
+fn respawn_player(
+    q_player: &mut Query<&mut Transform, With<Player>>,
+    level_selection: &LevelSelection,
+) {
+    match tilemap::current_level_index(level_selection) {
+        Some(index) => {
+            move_player_to_spawn_point(q_player, index);
+        }
+        _ => (),
+    };
+}
+
 // FUNCTIONS FOR EASE OF TESTING
 //
-pub fn respawn_player(
+pub fn handle_player_respawn_input(
     mut q_player: Query<&mut Transform, With<Player>>,
     input: Res<Input<KeyCode>>,
-    level_selection: ResMut<LevelSelection>,
+    level_selection: Res<LevelSelection>,
 ) {
     input.just_pressed(KeyCode::Back).then(|| {
-        match tilemap::current_level_index(&level_selection) {
-            Some(index) => {
-                move_player_to_spawn_point(&mut q_player, index);
-            }
-            _ => (),
-        }
+        respawn_player(&mut q_player, &*level_selection);
     });
 }
 
@@ -212,9 +272,11 @@ fn move_player_to_spawn_point(
 ) {
     let mut player = q_player.single_mut();
     player.translation = match level_index {
-        0 => Vec3::new(50.0, 50.0, 900.0),
-        1 => Vec3::new(340.0, 82.0, 900.0),
-        2 => Vec3::new(520.0, 100.0, 900.0),
+        0 => Vec3::new(44.0, 428.0, 900.0),
+        1 => Vec3::new(340.0, 420.0, 900.0),
+        2 => Vec3::new(544.0, 456.0, 900.0),
+        3 => Vec3::new(544.0, 200.0, 900.0),
+        4 => Vec3::new(832.0, 472.0, 900.0),
         _ => Vec3::ZERO,
     };
 }

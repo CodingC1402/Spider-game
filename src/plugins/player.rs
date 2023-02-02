@@ -1,19 +1,17 @@
+mod animation;
 mod jump;
+pub mod lifecycle;
 mod movement;
 mod shoot_web;
-mod spawn;
-mod animation;
 
 use bevy::prelude::*;
 
 use self::{
+    animation::{update_animation, PlayerAnimationPlugin},
     jump::{check_if_grounded, check_if_head_bump, handle_jump},
+    lifecycle::*,
     movement::{apply_accel_when_land, handle_movement},
-    shoot_web::{
-        despawn_web, handle_shoot_web_input, handle_web_head_collision, setup_web_texture,
-        shoot_web, update_web_string_and_pull_force, DespawnWebEvent, WebTexture,
-    },
-    spawn::*, animation::{PlayerAnimationPlugin, update_animation},
+    shoot_web::*,
 };
 
 #[derive(Eq, Hash, PartialEq, Default, Clone, Copy, Debug)]
@@ -26,7 +24,7 @@ pub enum PlayerAnimState {
     Jumping,
     Landing,
     Hurt,
-    None
+    None,
 }
 
 #[derive(Debug)]
@@ -34,6 +32,7 @@ pub enum PlayerEvent {
     Airborne(Entity),
     Jumped(Entity),
     Grounded(Entity),
+    Died(Entity),
     Hurt(Entity),
     Attacks(Entity),
     /// Axis [f32], Player [Entity]
@@ -80,19 +79,21 @@ impl Plugin for PlayerPlugin {
             .add_system(handle_movement)
             .add_system(check_if_head_bump)
             .add_system(apply_accel_when_land)
-            
             // animation
-            .add_system(update_animation)
             .add_plugin(PlayerAnimationPlugin)
-
+            .add_system(update_animation)
             // shoot web
             .add_system(handle_shoot_web_input)
             .add_system(shoot_web)
             .add_system(handle_web_head_collision)
             .add_system(update_web_string_and_pull_force)
             .add_system(despawn_web)
+            .add_system(despawn_web_on_player_death)
+            // death
+            .add_system(kill_player)
+            .add_system(respawn_player_on_death)
             // testing
-            .add_system(respawn_player)
+            .add_system(handle_player_respawn_input)
             .add_system(adjust_player_pos_to_level);
     }
 }
@@ -104,7 +105,7 @@ fn spawn_player_at_start(
 ) {
     spawn_player(
         &mut commands,
-        Transform::from_xyz(50.0, 50.0, 900.0),
+        Transform::from_xyz(44.0, 428.0, 900.0),
         asset_server.as_ref(),
         texture_atlases.as_mut(),
     );
