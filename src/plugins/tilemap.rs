@@ -6,7 +6,7 @@ mod spawn;
 
 const MAP_PATH: &str = "ldtk.ldtk";
 const START_LEVEL: usize = 0;
-const LEVELS: &[&str] = &["Level_0", "Level_1", "Level_2"];
+const LEVELS: &[&str] = &["Level_0", "Level_1", "Level_2", "Level_3", "Level_4"];
 const DARK_CAVE_LAYER: &str = "DarkCave";
 const SPIKES_LAYER: &str = "Spikes";
 const DARK_TERRAIN: i32 = 1;
@@ -47,6 +47,7 @@ impl Plugin for TilemapPlugin {
             .add_startup_system(spawn::spawn_tilemap)
             .add_system(spawn::spawn_tile_colliders)
             .add_system(spawn::camera_fit_inside_current_level)
+            .add_system(spawn::update_level_selection)
             .add_system(change_level);
     }
 }

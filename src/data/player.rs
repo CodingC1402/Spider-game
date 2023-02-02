@@ -33,7 +33,7 @@ pub struct PlayerMovement {
 
 impl PlayerMovement {
     pub const NORM_AIR_ACCEL: f32 = 600.0;
-    pub const SWINGING_AIR_ACCEL: f32 = 1000.0;
+    pub const SWINGING_AIR_ACCEL: f32 = 1200.0;
 }
 
 #[derive(Component, Default, Reflect)]
@@ -64,7 +64,7 @@ pub struct PlayerBundle {
     pub info: PlayerInfo,
     pub movement: PlayerMovement,
     pub name: Name,
-    pub anim: AnimData<PlayerAnimState>
+    pub anim: AnimData<PlayerAnimState>,
 }
 
 #[derive(Bundle)]

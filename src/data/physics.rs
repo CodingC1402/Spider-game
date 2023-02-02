@@ -48,6 +48,7 @@ pub struct ColliderBundle {
     pub density: ColliderMassProperties,
     pub friction: Friction,
     pub collision_groups: CollisionGroups,
+    pub active_events: ActiveEvents,
 }
 
 #[derive(Component, Clone, Debug, Default)]
