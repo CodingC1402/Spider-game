@@ -1,13 +1,22 @@
-use bevy::{utils::Uuid, prelude::info};
+use bevy::utils::Uuid;
 
 use super::{Node, NodeResult};
 use crate::prelude::{AnimState, ToUuid};
 
-#[derive(ToUuid, Default)]
+#[derive(ToUuid)]
 pub struct AllNode {
     pub id: Uuid,
     pub nodes: Vec<Uuid>,
     pub is_loop: bool,
+}
+impl Default for AllNode {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            nodes: Default::default(),
+            is_loop: true,
+        }
+    }
 }
 impl AllNode {
     pub fn new() -> Self {
@@ -35,15 +44,17 @@ where
         let logic = logic
             .0
             .eq(&self.id)
-            .then_some(
+            .then(||
                 logic
                     .1
                     .ge(&self.nodes.len())
                     .then(|| {
-                        self.is_loop.then(|| {
-                            logic_stack.clear();
-                            default
-                        }).unwrap_or((self.id, self.nodes.len() - 1))
+                        self.is_loop
+                            .then(|| {
+                                logic_stack.clear();
+                                default
+                            })
+                            .unwrap_or((self.id, self.nodes.len() - 1))
                     })
                     .unwrap_or((self.id, logic.1)),
             )
@@ -61,7 +72,7 @@ where
                 ))))
                 .unwrap()
                 .clone(),
-            logic
+            logic,
         )
     }
 }

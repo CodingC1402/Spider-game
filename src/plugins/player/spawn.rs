@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::LevelSelection;
 use bevy_rapier2d::prelude::{
-    Ccd, CoefficientCombineRule, Collider, CollisionGroups, Friction, GravityScale, LockedAxes,
+    Ccd, CoefficientCombineRule, Collider, CollisionGroups, Friction, GravityScale, LockedAxes, ColliderMassProperties,
 };
 
 use crate::{
@@ -58,14 +58,14 @@ pub fn spawn_player(
             jump: PlayerJump {
                 jump_force_id: 1,
                 strength: 150.0,
-                air_upward_force: 1300.0,
-                duration: 0.5,
+                air_upward_force: 1400.0,
+                duration: 0.4,
                 ..Default::default()
             },
             movement: PlayerMovement {
                 movement_force_id: 0,
-                acceleration: 1500.0,
-                landing_accel: 1000.0,
+                acceleration: 1300.0,
+                landing_accel: 200.0,
                 airborne_acceleration: PlayerMovement::NORM_AIR_ACCEL,
                 max_velocity: 60.0,
                 ..Default::default()
@@ -123,7 +123,7 @@ pub fn spawn_player(
                 .insert(ColliderBundle {
                     collider: Collider::cuboid(3.5, 2.4),
                     friction: Friction {
-                        coefficient: 0.4,
+                        coefficient: 0.2,
                         combine_rule: CoefficientCombineRule::Min,
                     },
                     collision_groups: CollisionGroups {
@@ -132,6 +132,7 @@ pub fn spawn_player(
                     },
                     ..Default::default()
                 })
+                .insert(ColliderMassProperties::Mass(1.0))
                 .insert(Name::from("Body"));
 
             builder.spawn(PlayerHeadBundle {
@@ -149,11 +150,11 @@ pub fn spawn_player(
 
             builder.spawn(PlayerFootBundle {
                 transform: TransformBundle {
-                    local: Transform::from_xyz(0.0, -7.0, 0.0),
+                    local: Transform::from_xyz(0.0, -8.5, 0.0),
                     ..Default::default()
                 },
                 player_collider: PlayerColliderBundle {
-                    collider: Collider::cuboid(2.0, 4.0),
+                    collider: Collider::cuboid(1.3, 4.0),
                     ..default()
                 },
                 name: Name::from("Foot long"),

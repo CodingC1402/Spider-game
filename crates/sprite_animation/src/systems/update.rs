@@ -12,6 +12,7 @@ where
 {
     q_anim.iter_mut().for_each(|(mut data, mut sprite)| {
         let mut logic_stack = data.logic_stack.clone();
+        data.add_state_time(time.delta_seconds());
         match anim_tree.get().update(&data, time.delta_seconds(), &mut logic_stack) {
             Ok(value) => {
                 data.logic_stack = logic_stack;

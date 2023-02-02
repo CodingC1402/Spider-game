@@ -2,9 +2,7 @@ use std::ops::Not;
 
 use bevy::prelude::*;
 
-use bevy_rapier2d::prelude::{Velocity, ExternalForce};
-
-use sprite_animation::prelude::AnimData;
+use bevy_rapier2d::prelude::{ExternalForce, Velocity};
 
 use crate::data::{
     physics::ComplexExternalForce,
@@ -12,13 +10,14 @@ use crate::data::{
     web::Web,
 };
 
-use super::{PlayerAnimState, PlayerControl, PlayerEvent};
+use super::{PlayerControl, PlayerEvent};
 
 pub fn handle_movement(
     input: Res<Input<KeyCode>>,
     control: Res<PlayerControl>,
     mut query: Query<
         (
+            Entity,
             &mut PlayerMovement,
             &PlayerInfo,
             &mut Velocity,
@@ -27,8 +26,9 @@ pub fn handle_movement(
         With<Player>,
     >,
     q_web: Query<&Web>,
+    mut e_writer: EventWriter<PlayerEvent>,
 ) {
-    let (mut movement, info, mut vel, mut cef) = query.single_mut();
+    let (player, mut movement, info, mut vel, mut cef) = query.single_mut();
     let old_value = movement.axis;
 
     movement.axis = input.pressed(control.left).then_some(-1.0).unwrap_or(0.0)
@@ -61,6 +61,17 @@ pub fn handle_movement(
                 )
                 .unwrap_or(0.0)
         });
+
+    // Send event
+    old_value.eq(&movement.axis).not().then(|| {
+        movement
+            .axis
+            .eq(&0.0)
+            .then(|| {
+                e_writer.send(PlayerEvent::Standing(player));
+            })
+            .unwrap_or_else(|| e_writer.send(PlayerEvent::Moving(movement.axis, player)))
+    });
 }
 
 pub fn apply_accel_when_land(
@@ -75,21 +86,5 @@ pub fn apply_accel_when_land(
 
             force.force += Vec2::new(movement.landing_accel * movement.axis, 0.0);
         }
-    });
-}
-
-pub fn test_anim(mut q: Query<&mut AnimData<PlayerAnimState>>, input: Res<Input<KeyCode>>) {
-    q.for_each_mut(|mut x| {
-        if input.just_pressed(KeyCode::C) {
-            x.state = match x.state {
-                PlayerAnimState::Idle => PlayerAnimState::Jumping,
-                PlayerAnimState::Walking => PlayerAnimState::Idle,
-                PlayerAnimState::MidAir => PlayerAnimState::Walking,
-                PlayerAnimState::Jumping => PlayerAnimState::Walking,
-                PlayerAnimState::Landing => PlayerAnimState::Idle,
-                PlayerAnimState::Hurt => PlayerAnimState::Idle,
-                
-            };
-        };
     });
 }
