@@ -64,8 +64,6 @@ impl Default for PlayerControl {
 #[derive(Resource, Debug)]
 pub struct PlayerSwingDirection(f32);
 
-pub struct PlayerDebugEvent;
-
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -73,7 +71,6 @@ impl Plugin for PlayerPlugin {
             .insert_resource(WebTexture::default())
             .add_event::<PlayerEvent>()
             .add_event::<DespawnWebEvent>()
-            .add_event::<PlayerDebugEvent>()
             .add_startup_system(setup_web_texture)
             .add_startup_system(spawn_player_at_start)
             // movements
@@ -93,8 +90,7 @@ impl Plugin for PlayerPlugin {
             .add_system(despawn_web)
             // testing
             .add_system(respawn_player)
-            .add_system(adjust_player_pos_to_level)
-            .add_system(dbg_player_translation);
+            .add_system(adjust_player_pos_to_level);
     }
 }
 
@@ -109,14 +105,4 @@ fn spawn_player_at_start(
         asset_server.as_ref(),
         texture_atlases.as_mut(),
     );
-}
-
-fn dbg_player_translation(
-    q_player: Query<&GlobalTransform, With<Player>>,
-    ev_dbg_translation: EventReader<PlayerDebugEvent>,
-) {
-    if !ev_dbg_translation.is_empty() {
-        let player_translation = q_player.single().translation();
-        warn!("player translation: {}", player_translation);
-    }
 }
