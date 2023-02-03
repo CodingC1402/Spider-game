@@ -9,7 +9,7 @@ use bevy_rapier2d::prelude::{
 
 use crate::{
     data::{physics::*, player::*, tilemap::Trap},
-    plugins::tilemap::{self, TilemapEvent},
+    plugins::tilemap,
 };
 
 use super::PlayerEvent;
@@ -205,7 +205,7 @@ pub fn kill_player(
                 .then_some(*entity_two)
                 .or_else(|| player_is_parent(entity_one).then_some(*entity_one));
             if let None = other_entity {
-                return;
+                continue;
             }
             let other_entity = other_entity.unwrap();
             q_trap.get(other_entity).is_ok().then(|| {
@@ -235,48 +235,66 @@ fn respawn_player(
     level_selection: &LevelSelection,
 ) {
     match tilemap::current_level_index(level_selection) {
-        Some(index) => {
-            move_player_to_spawn_point(q_player, index);
+        Some(level_index) => {
+            let mut player = q_player.single_mut();
+            player.translation = translation_in_level(level_index);
         }
         _ => (),
     };
 }
 
-// FUNCTIONS FOR EASE OF TESTING
-//
-pub fn handle_player_respawn_input(
-    mut q_player: Query<&mut Transform, With<Player>>,
-    input: Res<Input<KeyCode>>,
-    level_selection: Res<LevelSelection>,
-) {
-    input.just_pressed(KeyCode::Back).then(|| {
-        respawn_player(&mut q_player, &*level_selection);
-    });
-}
-
-pub fn adjust_player_pos_to_level(
-    mut q_player: Query<&mut Transform, With<Player>>,
-    mut evr_tilemap: EventReader<TilemapEvent>,
-) {
-    evr_tilemap.iter().find(|ev| match ev {
-        TilemapEvent::ChangedLevel(level) => {
-            move_player_to_spawn_point(&mut q_player, *level);
-            true
-        }
-    });
-}
-
-fn move_player_to_spawn_point(
-    q_player: &mut Query<&mut Transform, With<Player>>,
-    level_index: usize,
-) {
-    let mut player = q_player.single_mut();
-    player.translation = match level_index {
-        0 => Vec3::new(44.0, 428.0, 900.0),
-        1 => Vec3::new(340.0, 420.0, 900.0),
-        2 => Vec3::new(544.0, 456.0, 900.0),
-        3 => Vec3::new(544.0, 200.0, 900.0),
-        4 => Vec3::new(832.0, 472.0, 900.0),
+pub fn translation_in_level(level_index: usize) -> Vec3 {
+    match level_index {
+        0 => Vec3::new(44.0, 340.0, 900.0),
+        1 => Vec3::new(340.0, 332.0, 900.0),
+        2 => Vec3::new(544.0, 368.0, 900.0),
+        3 => Vec3::new(696.0, 240.0, 900.0),
+        4 => Vec3::new(832.0, 380.0, 900.0),
+        5 => Vec3::new(1300.0, 450.0, 900.0),
         _ => Vec3::ZERO,
+    }
+}
+
+pub fn player_collision(
+    q_player: Query<Entity, With<Player>>,
+    q_parents: Query<&Parent>,
+    mut evr_collisions: EventReader<CollisionEvent>,
+    mut evw_player: EventWriter<PlayerEvent>,
+) {
+    if evr_collisions.is_empty() {
+        return;
+    }
+    let player = q_player.single();
+    let player_is_parent = |entity: &Entity| {
+        if let Ok(parent) = q_parents.get(*entity) {
+            return parent.get() == player;
+        } else {
+            false
+        }
     };
+    for collision in evr_collisions.iter() {
+        if let CollisionEvent::Started(entity_one, entity_two, _) = collision {
+            let other_entity = player_is_parent(entity_one)
+                .then_some(*entity_two)
+                .or_else(|| player_is_parent(entity_one).then_some(*entity_one));
+            if let None = other_entity {
+                continue;
+            }
+            let other_entity = other_entity.unwrap();
+            evw_player.send(PlayerEvent::Collided(other_entity));
+        }
+    }
+}
+
+// TESTING
+pub fn to_last_level(
+    input: Res<Input<KeyCode>>,
+    mut q_player: Query<&mut Transform, With<Player>>,
+    mut level_selection: ResMut<LevelSelection>,
+) {
+    let mut player_transform = q_player.single_mut();
+    if input.just_pressed(KeyCode::Return) {
+        player_transform.translation = translation_in_level(5);
+        *level_selection = LevelSelection::Identifier("Level_5".to_string());
+    }
 }

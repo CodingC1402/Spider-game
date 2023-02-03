@@ -1,6 +1,6 @@
 use std::ops::Not;
 
-use crate::{data::player::PlayerMovement, GameState, utils::state_helper::StateExtend};
+use crate::{data::player::PlayerMovement, utils::state_helper::StateExtend, GameState};
 
 use super::{PlayerAnimState, PlayerEvent};
 use bevy::prelude::*;
@@ -93,9 +93,7 @@ pub struct PlayerAnimationPlugin {
 }
 impl PlayerAnimationPlugin {
     pub fn new(state: Option<GameState>) -> Self {
-        Self {
-            run_in: state
-        }
+        Self { run_in: state }
     }
 }
 
@@ -177,8 +175,7 @@ fn update_animation(
                     PlayerEvent::Grounded(_) => PlayerAnimState::Landing,
                     PlayerEvent::Moving(_, _) => PlayerAnimState::Walking,
                     PlayerEvent::Standing(_) => PlayerAnimState::Standing,
-                    PlayerEvent::ShotWeb => PlayerAnimState::None,
-                    PlayerEvent::Died(_) => PlayerAnimState::None,
+                    _ => PlayerAnimState::None,
                     // PlayerEvent::Hurt(_) => PlayerAnimState::Hurt,
                     // PlayerEvent::Attacks(_) => PlayerAnimState::Hurt,
                 };
