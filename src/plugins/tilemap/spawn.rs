@@ -1,14 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::data::physics::{CollisionGroupsFilter, GameCollisionGroups};
-use crate::data::player::Player;
 use crate::data::tilemap::*;
 use crate::data::tilemap::{TerrainTile, TrapTile, WebStickerTile};
 use bevy::prelude::*;
 use bevy_ecs_ldtk::{prelude::*, GridCoords};
 use bevy_rapier2d::prelude::*;
-
-const ASPECT_RATIO: f32 = 16. / 9.;
 
 pub fn spawn_tilemap(mut commands: Commands, asset_server: Res<AssetServer>) {
     let ldtk_handle = asset_server.load(super::MAP_PATH);
@@ -205,84 +202,4 @@ fn spawn_connected_colliders<T>(
             });
         }
     });
-}
-
-pub fn camera_fit_inside_current_level(
-    mut camera_query: Query<(
-        &mut bevy::render::camera::OrthographicProjection,
-        &mut Transform,
-    )>,
-    player_query: Query<&GlobalTransform, With<Player>>,
-    level_query: Query<(&Transform, &Handle<LdtkLevel>), Without<OrthographicProjection>>,
-    ldtk_levels: Res<Assets<LdtkLevel>>,
-    level_selection: Res<LevelSelection>,
-) {
-    let (mut orthographic_projection, mut camera_transform) = camera_query.single_mut();
-    let player_translation = player_query.single().translation();
-
-    for (level_transform, level_handle) in &level_query {
-        if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
-            let level = &ldtk_level.level;
-            if level_selection.is_match(&0, level) {
-                let level_ratio = level.px_wid as f32 / ldtk_level.level.px_hei as f32;
-
-                orthographic_projection.scaling_mode = bevy::render::camera::ScalingMode::None;
-                orthographic_projection.bottom = 0.;
-                orthographic_projection.left = 0.;
-                if level_ratio > ASPECT_RATIO {
-                    // level is wider than the screen
-                    orthographic_projection.top = (level.px_hei as f32 / 9.).round() * 9.;
-                    orthographic_projection.right = orthographic_projection.top * ASPECT_RATIO;
-                    camera_transform.translation.x = (player_translation.x
-                        - level_transform.translation.x
-                        - orthographic_projection.right / 2.)
-                        .clamp(0., level.px_wid as f32 - orthographic_projection.right);
-                    camera_transform.translation.y = 0.;
-                } else {
-                    // level is taller than the screen
-                    orthographic_projection.right = (level.px_wid as f32 / 16.).round() * 16.;
-                    orthographic_projection.top = orthographic_projection.right / ASPECT_RATIO;
-                    camera_transform.translation.y = (player_translation.y
-                        - level_transform.translation.y
-                        - orthographic_projection.top / 2.)
-                        .clamp(0., level.px_hei as f32 - orthographic_projection.top);
-                    camera_transform.translation.x = 0.;
-                }
-
-                camera_transform.translation.x += level_transform.translation.x;
-                camera_transform.translation.y += level_transform.translation.y;
-            }
-        }
-    }
-}
-
-pub fn update_level_selection(
-    level_query: Query<(&Handle<LdtkLevel>, &Transform), Without<Player>>,
-    player_query: Query<&Transform, With<Player>>,
-    mut level_selection: ResMut<LevelSelection>,
-    ldtk_levels: Res<Assets<LdtkLevel>>,
-) {
-    for (level_handle, level_transform) in &level_query {
-        if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
-            let level_bounds = Rect {
-                min: Vec2::new(level_transform.translation.x, level_transform.translation.y),
-                max: Vec2::new(
-                    level_transform.translation.x + ldtk_level.level.px_wid as f32,
-                    level_transform.translation.y + ldtk_level.level.px_hei as f32,
-                ),
-            };
-
-            for player_transform in &player_query {
-                if player_transform.translation.x < level_bounds.max.x
-                    && player_transform.translation.x > level_bounds.min.x
-                    && player_transform.translation.y < level_bounds.max.y
-                    && player_transform.translation.y > level_bounds.min.y
-                    && !level_selection.is_match(&0, &ldtk_level.level)
-                {
-                    *level_selection =
-                        LevelSelection::Identifier(ldtk_level.level.identifier.clone());
-                }
-            }
-        }
-    }
 }

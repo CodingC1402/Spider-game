@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use bevy::prelude::*;
+use bevy_ecs_ldtk::EntityInstance;
 use bevy_rapier2d::prelude::*;
+
+use crate::plugins::tilemap;
 
 pub struct GameCollisionGroups;
 
@@ -48,6 +51,18 @@ pub struct ColliderBundle {
     pub friction: Friction,
     pub collision_groups: CollisionGroups,
     pub active_events: ActiveEvents,
+}
+
+impl From<EntityInstance> for ColliderBundle {
+    fn from(entity_instance: EntityInstance) -> Self {
+        match entity_instance.identifier.as_str() {
+            tilemap::COIN => Self {
+                collider: Collider::cuboid(tilemap::TILE_HALF_SIZE.0, tilemap::TILE_HALF_SIZE.1),
+                ..default()
+            },
+            _ => Self::default(),
+        }
+    }
 }
 
 #[derive(Component, Clone, Debug, Default)]
