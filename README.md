@@ -2,8 +2,7 @@
 
 I don't know what to add here so I added a bunch of bs.
 
-Project tree:
----
+## Project tree:
 
 - **Entities, Components, States, Plugins:** Should be in the src folder because it's used in global context.
 - **Systems:** Should be in a sub folder of plugins folder and being added by the plugins it self, the sub folder name should be the same name as the plugin.
@@ -22,6 +21,14 @@ cargo run
 ```sh
 cargo run --release
 ```
+
+## Controls:
+- **F11:** Switch between window mode (Fullscreen, windowed, borderless window)
+- **Esc:** Switch between main menu and gameplay
+- **A + D:** move left and right
+- **Space:** Jump
+- **Left click:** Shot web in the direction toward our cursor.
+- **Right click:** Remove web.
 
 ## Examples:
 

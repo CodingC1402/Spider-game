@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_rapier2d::render::RapierDebugRenderPlugin;
 use iyes_loopless::state::{CurrentState, NextState};
 
 use crate::GameState;
@@ -9,7 +10,8 @@ pub struct DebugPlugin;
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(debug_assertions)]
-        app.add_system(switch_state);
+        app.add_system(switch_state)
+        .add_plugin(RapierDebugRenderPlugin::default());
     }
 }
 

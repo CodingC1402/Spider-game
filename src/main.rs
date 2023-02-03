@@ -4,7 +4,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use iyes_loopless::prelude::AppLooplessStateExt;
 use plugins::{
     base::BasePlugin, debug::DebugPlugin, display::DisplayPlugin, physics::PhysicsPlugin,
-    player::PlayerPlugin, tilemap::TilemapPlugin, clean_up::CleanUpPlugin,
+    player::PlayerPlugin, tilemap::TilemapPlugin, clean_up::CleanUpPlugin, menu::MenuPlugin,
 };
 use strum::EnumIter;
 
@@ -39,6 +39,7 @@ fn main() {
         // This will also clean up debug line, I can't do anything about that
         // because bevy decided that the component used to mark that is pub(crate)
         .add_plugin(CleanUpPlugin::<GameState>::default())
+        .add_plugin(MenuPlugin::new(Some(GameState::InMenu)))
         .add_plugin(TilemapPlugin::new(Some(GameState::InGame)))
         .add_plugin(PlayerPlugin::new(Some(GameState::InGame)));
 
