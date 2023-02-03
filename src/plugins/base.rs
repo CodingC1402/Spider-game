@@ -3,9 +3,10 @@ use crate::data::clean_up::Persist;
 use super::display::DisplaySettings;
 use bevy::{
     prelude::*,
-    window::{WindowDescriptor, WindowPlugin},
-    DefaultPlugins,
+    window::{WindowDescriptor, WindowPlugin, WindowId},
+    DefaultPlugins, winit::WinitWindows,
 };
+use winit::window::Icon;
 pub struct BasePlugin;
 
 impl Plugin for BasePlugin {
@@ -35,7 +36,23 @@ impl Plugin for BasePlugin {
     }
 }
 
-fn setup(mut commands: Commands) {
+
+fn setup(mut commands: Commands,  windows: NonSend<WinitWindows>) {
+    let primary = windows.get_window(WindowId::primary()).unwrap();
+    // primary.set_cursor_visible(false);
+
+    let (icon_rgba, icon_width, icon_height) = {
+        let image = image::open("assets/icon.png")
+            .expect("Failed to open icon path")
+            .into_rgba8();
+        let (width, height) = image.dimensions();
+        let rgba = image.into_raw();
+        (rgba, width, height)
+    };
+
+    let icon = Icon::from_rgba(icon_rgba, icon_width, icon_height).unwrap();
+    primary.set_window_icon(Some(icon));
+
     commands
         .spawn(Camera2dBundle::default())
         .insert(Persist)
