@@ -28,7 +28,9 @@ where
 {
     fn build(&self, app: &mut App) {
         for state in State::iter() {
-            app.add_exit_system(state, clean_up_system);
+            app
+            .add_startup_system_to_stage(StartupStage::PostStartup, mark_persist_on_startup)
+            .add_exit_system(state, clean_up_system);
         }
     }
 }
@@ -36,5 +38,11 @@ where
 fn clean_up_system(mut commands: Commands, q: Query<Entity, (Without<Persist>, Without<Parent>)>) {
     q.for_each(|e| {
         commands.entity(e).despawn_recursive();
+    })
+}
+
+fn mark_persist_on_startup(mut commands: Commands, q: Query<Entity>) {
+    q.for_each(|e| {
+        commands.entity(e).insert(Persist);
     })
 }
