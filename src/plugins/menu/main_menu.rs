@@ -5,8 +5,8 @@ use crate::{data::menu::*, GameState};
 use kayak_ui::{
     prelude::*,
     widgets::{
-        ButtonState, KayakAppBundle, KayakWidgetsContextPlugin, NinePatch, NinePatchBundle,
-        TextProps, TextWidgetBundle,
+        ButtonState, KImage, KImageBundle, KayakAppBundle, KayakWidgetsContextPlugin, NinePatch,
+        NinePatchBundle,
     },
 };
 
@@ -22,7 +22,8 @@ fn menu_button_render(
 
     let button_text = menu_button_query.get(entity).unwrap().text.clone();
     let button_image = asset_server.load("main_menu/button.png");
-    let button_image_hover = asset_server.load("main_menu/button-hover.png");
+    let button_image_hover = asset_server.load("main_menu/button_hover.png");
+    let button_text_image = asset_server.load(format!("main_menu/{button_text}.png"));
 
     let on_event = OnEvent::new(
         move |In((event_dispatcher_context, _, mut event, _entity)): In<(
@@ -63,26 +64,23 @@ fn menu_button_render(
                     border: Edge::all(10.0),
                 }}
                 styles={KStyle {
-                    width: Units::Stretch(1.0).into(),
-                    height: Units::Pixels(40.0).into(),
+                    width: Units::Pixels(240.0).into(),
+                    height: Units::Pixels(120.0).into(),
                     bottom: Units::Pixels(30.0).into(),
-                    left: Units::Pixels(50.0).into(),
-                    right: Units::Pixels(50.0).into(),
+                    left: Units::Stretch(1.0).into(),
+                    right: Units::Stretch(1.0).into(),
                     ..KStyle::default()
                 }}
                 on_event={on_event}
             >
-                <TextWidgetBundle
+                <KImageBundle
+                    image={KImage(button_text_image)}
                     styles={KStyle {
-                        top: Units::Stretch(1.0).into(),
+                        left: Units::Stretch(1.0).into(),
+                        right: Units::Stretch(1.0).into(),
                         bottom: Units::Stretch(1.0).into(),
-                        ..Default::default()
-                    }}
-                    text={TextProps {
-                        alignment: Alignment::Middle,
-                        content: button_text,
-                        size: 28.0,
-                        ..Default::default()
+                        top: Units::Stretch(0.6).into(),
+                        ..KStyle::default()
                     }}
                 />
             </NinePatchBundle>
@@ -113,12 +111,13 @@ pub fn spawn_main_menu(
         menu_button_render,
     );
 
-    let panel1_image = asset_server.load("main_menu/panel1.png");
+    let panel_image = asset_server.load("main_menu/panel.png");
     let button_image = asset_server.load("main_menu/button.png");
     let button_image_hover = asset_server.load("main_menu/button-hover.png");
+    let background = asset_server.load("main_menu/background.png");
 
     preload_resource.images.extend(vec![
-        panel1_image.clone(),
+        panel_image.clone(),
         button_image.clone(),
         button_image_hover.clone(),
     ]);
@@ -150,9 +149,7 @@ pub fn spawn_main_menu(
         )>,
               mut commands: Commands| {
             match event.event_type {
-                EventType::Click(..) => {
-                    commands.insert_resource(NextState(GameState::InGame))
-                }
+                EventType::Click(..) => commands.insert_resource(NextState(GameState::InGame)),
                 _ => {}
             }
             (event_dispatcher_context, event)
@@ -164,18 +161,18 @@ pub fn spawn_main_menu(
         <KayakAppBundle>
             <NinePatchBundle
                 nine_patch={NinePatch {
-                    handle: panel1_image,
-                    border: Edge::all(25.0),
+                    handle: background,
+                    border: Edge::all(30.0),
                 }}
                 styles={KStyle {
-                    width: Units::Pixels(350.0).into(),
-                    height: Units::Pixels(200.0).into(),
+                    width: Units::Pixels(1920.0).into(),
+                    height: Units::Pixels(1080.0).into(),
                     left: Units::Stretch(1.0).into(),
                     right: Units::Stretch(1.0).into(),
                     top: Units::Stretch(1.0).into(),
                     bottom: Units::Stretch(1.0).into(),
                     padding: Edge::new(
-                        Units::Pixels(50.0),
+                        Units::Pixels(70.0),
                         Units::Pixels(20.0),
                         Units::Pixels(20.0),
                         Units::Pixels(20.0),
@@ -184,14 +181,38 @@ pub fn spawn_main_menu(
                     ..KStyle::default()
                 }}
             >
-                <MenuButtonBundle button={MenuButton { text: "Play".into() }} on_event={handle_switch_state} />
-                <MenuButtonBundle
-                    button={MenuButton { text: "Quit".into() }}
-                    on_event={handle_click_close}
-                />
+                <NinePatchBundle
+                    nine_patch={NinePatch {
+                        handle: panel_image,
+                        border: Edge::all(30.0),
+                    }}
+                    styles={KStyle {
+                        width: Units::Pixels(440.0).into(),
+                        height: Units::Pixels(440.0).into(),
+                        left: Units::Stretch(1.0).into(),
+                        right: Units::Stretch(1.0).into(),
+                        top: Units::Stretch(1.0).into(),
+                        bottom: Units::Stretch(1.0).into(),
+                        padding: Edge::new(
+                            Units::Pixels(70.0),
+                            Units::Pixels(20.0),
+                            Units::Pixels(20.0),
+                            Units::Pixels(20.0),
+                        ).into(),
+
+                        ..KStyle::default()
+                    }}
+                >
+                    <MenuButtonBundle button={MenuButton { text: "start".into() }} on_event={handle_switch_state} />
+                    <MenuButtonBundle
+                        button={MenuButton { text: "exit".into() }}
+                        on_event={handle_click_close}
+                    />
+                </NinePatchBundle>
             </NinePatchBundle>
         </KayakAppBundle>
     };
 
-    commands.spawn(UICameraBundle::new(widget_context));
+    let cam = UICameraBundle::new(widget_context);
+    commands.spawn(cam);
 }
