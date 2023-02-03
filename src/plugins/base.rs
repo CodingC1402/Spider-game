@@ -39,9 +39,8 @@ impl Plugin for BasePlugin {
 
 fn setup(mut commands: Commands,  windows: NonSend<WinitWindows>) {
     let primary = windows.get_window(WindowId::primary()).unwrap();
+    // primary.set_cursor_visible(false);
 
-    // here we use the `image` crate to load our icon data from a png file
-    // this is not a very bevy-native solution, but it will do
     let (icon_rgba, icon_width, icon_height) = {
         let image = image::open("assets/icon.png")
             .expect("Failed to open icon path")

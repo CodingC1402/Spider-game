@@ -7,4 +7,4 @@ pub mod utils;
 pub mod player;
 pub mod debug;
 pub mod clean_up;
-mod menu;
+pub mod menu;
