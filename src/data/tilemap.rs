@@ -32,7 +32,10 @@ pub struct WebStickable;
 pub struct NonStickable;
 
 #[derive(Component, Default)]
-pub struct SurfaceSensor;
+pub struct CreditsSensor;
+
+#[derive(Component, Default)]
+pub struct EdgeSensor;
 
 #[derive(Component, Default)]
 pub struct Edge;
@@ -78,13 +81,35 @@ pub struct TrapBundle {
 }
 
 #[derive(Bundle, Default)]
-pub struct SurfaceSensorBundle {
-    ssen: SurfaceSensor,
+pub struct EdgeSensorBundle {
+    esen: EdgeSensor,
     collider: ColliderBundle,
     sensor: Sensor,
 }
 
-impl LdtkIntCell for SurfaceSensorBundle {
+impl LdtkIntCell for EdgeSensorBundle {
+    fn bundle_int_cell(
+        _: bevy_ecs_ldtk::IntGridCell,
+        _: &bevy_ecs_ldtk::prelude::LayerInstance,
+    ) -> Self {
+        Self {
+            collider: ColliderBundle {
+                collider: Collider::cuboid(tilemap::TILE_HALF_SIZE.0, tilemap::TILE_HALF_SIZE.1),
+                ..default()
+            },
+            ..default()
+        }
+    }
+}
+
+#[derive(Bundle, Default)]
+pub struct CreditsSensorBundle {
+    ssen: CreditsSensor,
+    collider: ColliderBundle,
+    sensor: Sensor,
+}
+
+impl LdtkIntCell for CreditsSensorBundle {
     fn bundle_int_cell(
         _: bevy_ecs_ldtk::IntGridCell,
         _: &bevy_ecs_ldtk::prelude::LayerInstance,

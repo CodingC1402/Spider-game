@@ -11,7 +11,7 @@ impl Plugin for DebugPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         #[cfg(debug_assertions)]
         app.add_system(switch_state)
-        .add_plugin(RapierDebugRenderPlugin::default());
+            .add_plugin(RapierDebugRenderPlugin::default());
     }
 }
 
