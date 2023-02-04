@@ -96,9 +96,7 @@ impl Plugin for PlayerPlugin {
             .add_system_run_if(self.run_in, player_collision)
             // death
             .add_system_run_if(self.run_in, kill_player)
-            .add_system_run_if(self.run_in, respawn_player_on_death)
-            // testing
-            .add_system_run_if(self.run_in, to_last_level);
+            .add_system_run_if(self.run_in, respawn_player_on_death);
 
         // Add test in the test plugin for easy clean up
     }

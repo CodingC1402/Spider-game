@@ -285,16 +285,3 @@ pub fn player_collision(
         }
     }
 }
-
-// TESTING
-pub fn to_last_level(
-    input: Res<Input<KeyCode>>,
-    mut q_player: Query<&mut Transform, With<Player>>,
-    mut level_selection: ResMut<LevelSelection>,
-) {
-    let mut player_transform = q_player.single_mut();
-    if input.just_pressed(KeyCode::Return) {
-        player_transform.translation = translation_in_level(5);
-        *level_selection = LevelSelection::Identifier("Level_5".to_string());
-    }
-}
