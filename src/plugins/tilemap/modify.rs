@@ -10,8 +10,7 @@ use bevy_rapier2d::prelude::*;
 use super::{current_level_index, FontHandle, LevelChanged};
 
 const ASPECT_RATIO: f32 = 16. / 9.;
-// const TEXT_COLOR: Color = Color::rgb(0.968, 0.721, 0.333);
-const TEXT_COLOR: Color = Color::rgb(0.8, 0.8, 0.8);
+const TEXT_COLOR: Color = Color::rgb(0.95, 0.95, 0.95);
 
 #[derive(Resource)]
 pub struct CreditTimer {
@@ -243,8 +242,7 @@ pub fn update_credit_timer(
 }
 
 pub fn collect_coin(
-    q_player: Query<&GlobalTransform, With<Player>>,
-    q_coin: Query<Entity, With<Coin>>,
+    q_coin: Query<(Entity, &GlobalTransform), With<Coin>>,
     font_handle: Res<FontHandle>,
     mut evr_player_collisions: EventReader<PlayerEvent>,
     mut commands: Commands,
@@ -252,30 +250,29 @@ pub fn collect_coin(
     if q_coin.is_empty() {
         return;
     }
-    let player_transform = q_player.single();
-    let coin = q_coin.single();
+    let (coin_entity, coin_transform) = q_coin.single();
     evr_player_collisions
         .iter()
         .find(|ev| {
             if let Some(entity) = if_collide_event(ev) {
-                (entity == coin).then(|| {
+                (entity == coin_entity).then(|| {
                     commands.spawn(Text2dBundle {
                         text: Text::from_section(
-                            "You have acquired the Coin of Acknowledgement.\nThe programmers are very pleased.",
+                            "You have acquired the Coin of Luck.\nMay your journey be safe and bring you to what you seek.",
                             TextStyle {
                                 font: font_handle.0.clone(),
                                 font_size: 20.0,
                                 ..default()
                             },
                         )
-                        .with_alignment(TextAlignment::CENTER),
+                        .with_alignment(TextAlignment::CENTER_RIGHT),
                         text_2d_bounds: Text2dBounds {
-                            size: Vec2::new(300.0, 150.0),
+                            size: Vec2::new(350.0, 150.0),
                         },
-                        transform: Transform::from_translation(player_transform.translation() + 20.0 * Vec3::Y).with_scale(0.2 * Vec3::ONE),
+                        transform: Transform::from_translation(coin_transform.translation() + 12.0 * Vec3::Y).with_scale(0.2 * Vec3::ONE),
                         ..default()
                     });
-                    commands.entity(coin).despawn_recursive();
+                    commands.entity(coin_entity).despawn_recursive();
                 }).is_some()
             } else { false }
         });

@@ -67,10 +67,10 @@ pub fn check_if_head_bump(
     q_child: Query<&Children>,
     q_head: Query<Entity, (With<PlayerHead>, With<Sensor>)>,
     q_platform: Query<&Collider, With<Platform>>,
-    mut q_player: Query<(Entity, &mut PlayerJump, &mut ExternalForce), With<Player>>,
+    mut q_player: Query<(Entity, &mut PlayerJump, &mut ComplexExternalForce), With<Player>>,
     rapier_context: Res<RapierContext>,
 ) {
-    let (player, mut player_jump, mut force) = q_player.single_mut();
+    let (player, mut player_jump, mut cef) = q_player.single_mut();
 
     let check_head_then =
         |child: Entity, func: &dyn Fn() -> bool| {
@@ -93,7 +93,9 @@ pub fn check_if_head_bump(
         .not()
         .then(|| {
             player_jump.counter = 0.0;
-            force.force = Vec2::new(force.force.x, 0.0);
+            cef.forces.entry(player_jump.jump_force_id).and_modify(|jump_force| {
+                jump_force.y = 0.0;
+            });
         });
 }
 

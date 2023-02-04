@@ -31,7 +31,6 @@ impl Plugin for BasePlugin {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        // .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup);
     }
 }
