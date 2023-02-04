@@ -3,8 +3,9 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use iyes_loopless::prelude::AppLooplessStateExt;
 use plugins::{
-    base::BasePlugin, debug::DebugPlugin, display::DisplayPlugin, physics::PhysicsPlugin,
-    player::PlayerPlugin, tilemap::TilemapPlugin, clean_up::CleanUpPlugin, menu::MenuPlugin,
+    audio::AudioPlugin, base::BasePlugin, clean_up::CleanUpPlugin, debug::DebugPlugin,
+    display::DisplayPlugin, menu::MenuPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
+    tilemap::TilemapPlugin,
 };
 use strum::EnumIter;
 
@@ -35,7 +36,7 @@ fn main() {
         .add_plugin(BasePlugin)
         .add_plugin(PhysicsPlugin)
         .add_plugin(DisplayPlugin)
-
+        .add_plugin(AudioPlugin)
         // This will also clean up debug line, I can't do anything about that
         // because bevy decided that the component used to mark that is pub(crate)
         .add_plugin(CleanUpPlugin::<GameState>::default())

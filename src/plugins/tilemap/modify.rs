@@ -7,10 +7,11 @@ use crate::plugins::player::PlayerEvent;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use super::FontHandle;
+use super::{current_level_index, FontHandle, LevelChanged};
 
 const ASPECT_RATIO: f32 = 16. / 9.;
-const TEXT_COLOR: Color = Color::rgb(0.968, 0.721, 0.333);
+// const TEXT_COLOR: Color = Color::rgb(0.968, 0.721, 0.333);
+const TEXT_COLOR: Color = Color::rgb(0.8, 0.8, 0.8);
 
 #[derive(Resource)]
 pub struct CreditTimer {
@@ -73,7 +74,9 @@ pub fn update_level_selection(
     player_query: Query<&Transform, With<Player>>,
     mut level_selection: ResMut<LevelSelection>,
     ldtk_levels: Res<Assets<LdtkLevel>>,
+    mut evw_level_changed: EventWriter<LevelChanged>,
 ) {
+    let previous_level = current_level_index(&*level_selection);
     for (level_handle, level_transform) in &level_query {
         if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
             let level_bounds = Rect {
@@ -93,6 +96,14 @@ pub fn update_level_selection(
                 {
                     *level_selection =
                         LevelSelection::Identifier(ldtk_level.level.identifier.clone());
+                    if let Some(level) = current_level_index(&*level_selection) {
+                        if let Some(previous) = previous_level {
+                            evw_level_changed.send(LevelChanged {
+                                previous,
+                                current: level,
+                            });
+                        }
+                    }
                 }
             }
         }
@@ -100,8 +111,35 @@ pub fn update_level_selection(
 }
 
 pub fn spawn_surface_edges(
-    q_ssen: Query<Entity, With<SurfaceSensor>>,
+    q_esen: Query<Entity, With<EdgeSensor>>,
     q_edge: Query<Entity, (With<Edge>, Without<Collider>)>,
+    mut evr_player_collisions: EventReader<PlayerEvent>,
+    mut commands: Commands,
+) {
+    if q_esen.is_empty() {
+        return;
+    }
+    evr_player_collisions.iter().find(|ev| {
+        if let Some(entity) = if_collide_event(ev) {
+            q_esen
+                .contains(entity)
+                .then(|| {
+                    q_edge.for_each(|entity| {
+                        commands.entity(entity).insert(Collider::cuboid(
+                            super::TILE_HALF_SIZE.0,
+                            super::TILE_HALF_SIZE.1,
+                        ));
+                    });
+                })
+                .is_some()
+        } else {
+            false
+        }
+    });
+}
+
+pub fn spawn_credits(
+    q_ssen: Query<Entity, With<CreditsSensor>>,
     q_cred: Query<(Entity, &Transform), With<Credits>>,
     font_handle: Res<FontHandle>,
     mut cred_timer: ResMut<CreditTimer>,
@@ -116,12 +154,6 @@ pub fn spawn_surface_edges(
             q_ssen
                 .contains(entity)
                 .then(|| {
-                    q_edge.for_each(|entity| {
-                        commands.entity(entity).insert(Collider::cuboid(
-                            super::TILE_HALF_SIZE.0,
-                            super::TILE_HALF_SIZE.1,
-                        ));
-                    });
                     let (cred_entity, cred_transform) = q_cred.single();
                     commands.entity(cred_entity).insert(Text2dBundle {
                         text: Text::from_section(
